@@ -72,6 +72,13 @@ class CIDatabaseTestCase extends CIUnitTestCase
 	protected $basePath = TESTPATH . '_support/Database';
 
 	/**
+	 * The namespace to help us fird the migration classes.
+	 *
+	 * @var string
+	 */
+	protected $namespace = 'Tests\Support';
+
+	/**
 	 * The name of the database group to connect to.
 	 * If not present, will use the defaultGroup.
 	 *
@@ -149,9 +156,9 @@ class CIDatabaseTestCase extends CIUnitTestCase
 
 		if ($this->refresh === true)
 		{
-			if ( ! empty($this->basePath))
+			if ( ! empty($this->namespace))
 			{
-				$this->migrations->setNamespace('Tests\Support');
+				$this->migrations->setNamespace($this->namespace);
 			}
 
 			// Delete all of the tables to ensure we're at a clean start.
@@ -163,6 +170,8 @@ class CIDatabaseTestCase extends CIUnitTestCase
 
 				foreach ($tables as $table)
 				{
+					if ($table = $this->db->DBPrefix.'migrations') continue;
+
 					$forge->dropTable($table, true);
 				}
 			}
@@ -299,8 +308,8 @@ class CIDatabaseTestCase extends CIUnitTestCase
 			$table, $data
 		];
 
-		$this->db->table($table)
-				->insert($data);
+		return $this->db->table($table)
+					->insert($data);
 	}
 
 	//--------------------------------------------------------------------
