@@ -20,7 +20,7 @@ stored within the **application/Database/Seeds** directory. The name of the file
 		{
 			$data = [
 				'username' => 'darth',
-				'email' => 'darth@theempire.com'
+				'email'    => 'darth@theempire.com'
 			];
 
 			// Simple Queries
@@ -49,7 +49,7 @@ but organize the tasks into separate seeder files::
 		}
 	}
 
-You can also use a fully-qualified class name in the **call()** method, allowing you to keep your seeders 
+You can also use a fully-qualified class name in the **call()** method, allowing you to keep your seeders
 anywhere the autoloader can find them. This is great for more modular code bases::
 
 	public function run()
@@ -72,5 +72,5 @@ Command Line Seeding
 You can also seed data from the command line, as part of the Migrations CLI tools, if you don't want to create
 a dedicated controller::
 
-	> php index.php migrations seed TestSeeder
+	> php spark db:seed TestSeeder
 

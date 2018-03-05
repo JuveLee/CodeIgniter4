@@ -9,18 +9,18 @@ It can parse simple variables or variable tag pairs.
 Pseudo-variable names or control constructs are enclosed in braces, like this::
 
 	<html>
-		<head>
-			<title>{blog_title}</title>
-		</head>
-		<body>
-			<h3>{blog_heading}</h3>
+	<head>
+		<title>{blog_title}</title>
+	</head>
+	<body>
+		<h3>{blog_heading}</h3>
 
 		{blog_entries}
 			<h5>{title}</h5>
 			<p>{body}</p>
 		{/blog_entries}
 
-		</body>
+	</body>
 	</html>
 
 These variables are not actual PHP variables, but rather plain text
@@ -77,7 +77,6 @@ need to be unique, or a later parameter setting will over-ride an earlier one.
 This also impacts escaping parameter values for different contexts inside your
 script. You will have to give each escaped value a unique parameter name.
 
-
 Parser templates
 ================
 
@@ -90,7 +89,7 @@ like this::
 	];
 
 	echo $parser->setData($data)
-		->render('blog_template');
+	             ->render('blog_template');
 
 View parameters are passed to ``setData()`` as an associative
 array of data to be replaced in the template. In the above example, the
@@ -98,12 +97,10 @@ template would contain two variables: {blog_title} and {blog_heading}
 The first parameter to ``render()`` contains the name of the :doc:`view
 file <../general/views>` (in this example the file would be called blog_template.php),
 
-
 Parser Configuration Options
 ============================
 
 Several options can be passed to the ``render()`` or ``renderString()`` methods.
-
 
 -   ``cache`` - the time in seconds, to save a view's results; ignored for renderString()
 -   ``cache_name`` - the ID used to save/retrieve a cached view result; defaults to the viewpath;
@@ -145,7 +142,7 @@ constructs for conditional substitution.
 When the parser executes, it will generally
 
 -	handle any conditional substitutions
--	handle any nested/looping substutions
+-	handle any nested/looping substitutions
 -	handle the remaining single substitutions
 
 Loop Substitutions
@@ -160,18 +157,18 @@ iteration containing new values? Consider the template example we showed
 at the top of the page::
 
 	<html>
-		<head>
-			<title>{blog_title}</title>
-		</head>
-		<body>
-			<h3>{blog_heading}</h3>
+	<head>
+		<title>{blog_title}</title>
+	</head>
+	<body>
+		<h3>{blog_heading}</h3>
 
 		{blog_entries}
 			<h5>{title}</h5>
 			<p>{body}</p>
 		{/blog_entries}
 
-		</body>
+	</body>
 	</html>
 
 In the above code you'll notice a pair of variables: {blog_entries}
@@ -196,7 +193,7 @@ corresponding to your variable pair data. Consider this example::
 	);
 
 	echo $parser->setData($data)
-		->render('blog_template');
+	             ->render('blog_template');
 
 The value for the pseudo-variable ``blog_entries`` is a sequential
 array of associative arrays. The outer level does not have keys associated
@@ -215,7 +212,7 @@ method::
 	);
 
 	echo $parser->setData($data)
-		->render('blog_template');
+	             ->render('blog_template');
 
 Nested Substitutions
 ====================
@@ -226,13 +223,13 @@ an associative array of values, like a record from a database::
 	$data = array(
 		'blog_title'   => 'My Blog Title',
 		'blog_heading' => 'My Blog Heading',
-		'blog_entry' => array(
+		'blog_entry'   => array(
 			'title' => 'Title 1', 'body' => 'Body 1'
 		)
 	);
 
 	echo $parser->setData($data)
-		->render('blog_template');
+	             ->render('blog_template');
 
 The value for the pseudo-variable ``blog_entry`` is an associative
 array. The key/value pairs defined inside it will be exposed inside
@@ -277,8 +274,10 @@ The following example is not impacted by cascading::
 
 	$template = '{name} lives in {location}{city} on {planet}{/location}.';
 
-	$data = ['name' => 'George',
-		'location' => [ 'city' => 'Red City', 'planet' => 'Mars' ] ];
+	$data = [
+		'name'     => 'George',
+		'location' => [ 'city' => 'Red City', 'planet' => 'Mars' ]
+	];
 
 	echo $parser->setData($data)->renderString($template);
 	// Result: George lives in Red City on Mars.
@@ -287,8 +286,10 @@ This example gives different results, depending on cascading::
 
 	$template = '{location}{name} lives in {city} on {planet}{/location}.';
 
-	$data = ['name' => 'George',
-		'location' => [ 'city' => 'Red City', 'planet' => 'Mars' ] ];
+	$data = [
+		'name'     => 'George',
+		'location' => [ 'city' => 'Red City', 'planet' => 'Mars' ]
+	];
 
 	echo $parser->setData($data)->renderString($template, ['cascadeData'=>false]);
 	// Result: {name} lives in Red City on Mars.
@@ -296,12 +297,11 @@ This example gives different results, depending on cascading::
 	echo $parser->setData($data)->renderString($template, ['cascadeData'=>true]);
 	// Result: George lives in Red City on Mars.
 
-
 Preventing Parsing
 ==================
 
 You can specify portions of the page to not be parsed with the ``{noparse}{/noparse}`` tag pair. Anything in this
-section will stay exactly as it is, with no variable substition, looping, etc, happening to the markup between the brackets.
+section will stay exactly as it is, with no variable substitution, looping, etc, happening to the markup between the brackets.
 
 ::
 
@@ -338,7 +338,6 @@ of the comparison operators you would normally, like ``==``, ``===``, ``!==``, `
 	{else}
 		<h1>Welcome, User</h1>
 	{endif}
-
 
 .. note:: In the background, conditionals are parsed using an **eval()**, so you must ensure that you take
 	care with the user data that is used within conditionals, or you could open your application up to security risks.
@@ -404,6 +403,11 @@ highlight            phrase                     Highlights a given phrase within
 highlight_code                                  Highlights code samples with HTML/CSS.                               { v|highlight_code }
 limit_chars          limit                      Limits the number of chracters to $limit.                            { v|limit_chars(100) }
 limit_words          limit                      Limits the number of words to $limit.                                { v|limit_words(20) }
+local_currency       currency, locale           Displays a localized version of a currency. "currency" value is any  { v|local_currency(EUR,en_US) }
+                                                3-letter ISO 4217 currency code.
+local_number         type, precision, locale    Displays a localized version of a number. "type" can be one of:      { v|local_number(decimal,2,en_US) }
+                                                decimal, currency, percent, scientific, spellout, ordinal, duration.
+                                                See `PHP's NumberFormatter <http://php.net/manual/en/numberformatter.create.php>`_ for details.
 lower                                           Converts a string to lowercase.                                      { v|lower }
 nl2br                                           Replaces all newline characters (\n) to an HTML <br/> tag.           { v|nl2br }
 number_format        places                     Wraps PHP **number_format** function for use within the parser.      { v|number_format(3) }
@@ -425,8 +429,8 @@ You can easily create your own filters by editing **application/Config/View.php*
 callable::
 
 	public $filters = [
-		'abs'               => '\CodeIgniter\View\Filters::abs',
-		'capitalize'        => '\CodeIgniter\View\Filters::capitalize',
+		'abs'        => '\CodeIgniter\View\Filters::abs',
+		'capitalize' => '\CodeIgniter\View\Filters::capitalize',
 	];
 
 PHP Native functions as Filters
@@ -434,11 +438,10 @@ PHP Native functions as Filters
 
 You can easily use native php function as filters by editing **application/Config/View.php** and adding new entries to the
 ``$filters`` array.Each key is the name of the native PHP function is called by in the view, and its value is any valid native PHP
-function prefixed with \::
+function prefixed with::
 
 	public $filters = [
-		'str_repeat'               => '\str_repeat',
-		
+		'str_repeat' => '\str_repeat',
 	];
 
 Parser Plugins
@@ -479,9 +482,8 @@ previous_url                                    Alias for the previous_url helpe
 mailto               email, title, attributes   Alias for the mailto helper function.                                 			   {+ mailto email=foo@example.com title="Stranger Things" +}
 safe_mailto          email, title, attributes   Alias for the safe_mailto helper function.                            			   {+ safe_mailto email=foo@example.com title="Stranger Things" +}
 lang                 language string            Alias for the lang helper function.                                    			   {+ lang number.terabyteAbbr +}
-validation_errors    fieldname(optional)        Returns either error string for the field (if specified) or all validation errors. {+ validation_errors +} , {+ validation_errors field="email" +} 
+validation_errors    fieldname(optional)        Returns either error string for the field (if specified) or all validation errors. {+ validation_errors +} , {+ validation_errors field="email" +}
 ==================== ========================== ================================================================================== ================================================================
-
 
 Registering a Plugin
 --------------------
@@ -516,7 +518,6 @@ the content between its tags::
 
 	{+ foo +} inner content {+ /foo +}
 
-
 ***********
 Usage Notes
 ***********
@@ -531,7 +532,7 @@ template, they are ignored::
 		'lastname' => 'Doe'
 	);
 	echo $parser->setData($data)
-		->renderString($template);
+	             ->renderString($template);
 
 	// Result: Hello, John Doe
 
@@ -540,12 +541,12 @@ template, the original pseudo-variable is shown in the result::
 
 	$template = 'Hello, {firstname} {initials} {lastname}';
 	$data = array(
-		'title' => 'Mr',
+		'title'     => 'Mr',
 		'firstname' => 'John',
-		'lastname' => 'Doe'
+		'lastname'  => 'Doe'
 	);
 	echo $parser->setData($data)
-		->renderString($template);
+	             ->renderString($template);
 
 	// Result: Hello, John {initials} Doe
 
@@ -555,19 +556,18 @@ pair tag, but the closing variable pair tag is not rendered properly::
 
 	$template = 'Hello, {firstname} {lastname} ({degrees}{degree} {/degrees})';
 	$data = array(
-		'degrees' => 'Mr',
+		'degrees'   => 'Mr',
 		'firstname' => 'John',
-		'lastname' => 'Doe',
-		'titles' => array(
+		'lastname'  => 'Doe',
+		'titles'    => array(
 			array('degree' => 'BSc'),
 			array('degree' => 'PhD')
 		)
 	);
 	echo $parser->setData($data)
-		->renderString($template);
+	             ->renderString($template);
 
 	// Result: Hello, John Doe (Mr{degree} {/degrees})
-
 
 View Fragments
 ==============
@@ -590,7 +590,7 @@ An example with the iteration controlled in the view::
 		)
 	);
 	echo $parser->setData($data)
-		->renderString($template);
+	             ->renderString($template);
 
 Result::
 
@@ -619,7 +619,7 @@ using a view fragment::
 		'menuitems' => $temp
 	);
 	echo $parser->setData($data)
-		->renderString($template);
+	             ->renderString($template);
 
 Result::
 
@@ -627,7 +627,6 @@ Result::
 		<li><a href="/first">First Link</a></li>
 		<li><a href="/second">Second Link</a></li>
 	</ul>
-
 
 ***************
 Class Reference

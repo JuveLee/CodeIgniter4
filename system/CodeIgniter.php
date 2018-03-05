@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,18 +29,18 @@
  *
  * @package	CodeIgniter
  * @author	CodeIgniter Dev Team
- * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright	2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license	https://opensource.org/licenses/MIT	MIT License
  * @link	https://codeigniter.com
  * @since	Version 3.0.0
  * @filesource
  */
+use CodeIgniter\HTTP\RedirectResponse;
 use Config\Services;
 use Config\Cache;
 use CodeIgniter\HTTP\URI;
 use CodeIgniter\Debug\Timer;
 use CodeIgniter\Events\Events;
-use CodeIgniter\Config\DotEnv;
 use CodeIgniter\HTTP\Response;
 use CodeIgniter\HTTP\CLIRequest;
 use CodeIgniter\Router\RouteCollectionInterface;
@@ -90,19 +90,19 @@ class CodeIgniter
 
 	/**
 	 * Current request.
-	 * @var \CodeIgniter\HTTP\Request|\CodeIgniter\HTTP\IncomingRequest|CLIRequest
+	 * @var HTTP\Request|HTTP\IncomingRequest|CLIRequest
 	 */
 	protected $request;
 
 	/**
 	 * Current response.
-	 * @var \CodeIgniter\HTTP\Response
+	 * @var HTTP\Response
 	 */
 	protected $response;
 
 	/**
 	 * Router to use.
-	 * @var \CodeIgniter\Router\Router
+	 * @var Router\Router
 	 */
 	protected $router;
 
@@ -156,10 +156,9 @@ class CodeIgniter
 		date_default_timezone_set($this->config->appTimezone ?? 'UTC');
 
 		// Setup Exception Handling
-		Services::exceptions($this->config, true)
+		Services::exceptions()
 				->initialize();
 
-		$this->loadEnvironment();
 		$this->detectEnvironment();
 		$this->bootstrapEnvironment();
 
@@ -212,11 +211,7 @@ class CodeIgniter
 			$this->response->redirect($e->getMessage(), 'auto', $e->getCode());
 			$this->callExit(EXIT_SUCCESS);
 		}
-		// Catch Response::redirect()
-		catch (HTTP\RedirectException $e)
-		{
-			$this->callExit(EXIT_SUCCESS);
-		} catch (PageNotFoundException $e)
+		catch (PageNotFoundException $e)
 		{
 			$this->display404errors($e);
 		}
@@ -256,6 +251,12 @@ class CodeIgniter
 		{
 			$this->benchmark->stop('controller_constructor');
 			$this->benchmark->stop('controller');
+		}
+
+		// Handle any redirects
+		if ($returned instanceof RedirectResponse)
+		{
+			$this->callExit(EXIT_SUCCESS);
 		}
 
 		// If $returned is a string, then the controller output something,
@@ -300,14 +301,18 @@ class CodeIgniter
 	 */
 	protected function detectEnvironment()
 	{
-		// running under Continuous Integration server?
-		if (getenv('CI') !== false)
+		// Make sure ENVIRONMENT isn't already set by other means.
+		if (! defined('ENVIRONMENT'))
 		{
-			define('ENVIRONMENT', 'testing');
-		}
-		else
-		{
-			define('ENVIRONMENT', $_SERVER['CI_ENVIRONMENT'] ?? 'production');
+			// running under Continuous Integration server?
+			if (getenv('CI') !== false)
+			{
+				define('ENVIRONMENT', 'testing');
+			}
+			else
+			{
+				define('ENVIRONMENT', $_SERVER['CI_ENVIRONMENT'] ?? 'production');
+			}
 		}
 	}
 
@@ -336,21 +341,6 @@ class CodeIgniter
 	//--------------------------------------------------------------------
 
 	/**
-	 * Loads any custom server config values from the .env file.
-	 */
-	protected function loadEnvironment()
-	{
-		// Load environment settings from .env files
-		// into $_SERVER and $_ENV
-		require BASEPATH . 'Config/DotEnv.php';
-
-		$env = new DotEnv(ROOTPATH);
-		$env->load();
-	}
-
-	//--------------------------------------------------------------------
-
-	/**
 	 * Start the Benchmark
 	 *
 	 * The timer is used to display total script execution both in the
@@ -374,7 +364,7 @@ class CodeIgniter
 	 */
 	protected function getRequestObject()
 	{
-		if (is_cli())
+		if (is_cli() && ! (ENVIRONMENT == 'testing'))
 		{
 			$this->request = Services::clirequest($this->config);
 		}
@@ -395,7 +385,7 @@ class CodeIgniter
 	{
 		$this->response = Services::response($this->config);
 
-		if ( ! is_cli())
+		if ( ! is_cli() || ENVIRONMENT == 'testing')
 		{
 			$this->response->setProtocolVersion($this->request->getProtocolVersion());
 		}
@@ -489,6 +479,8 @@ class CodeIgniter
 	 * full-page caching for very high performance.
 	 *
 	 * @param \Config\Cache $config
+	 *
+	 * @return mixed
 	 */
 	public function cachePage(Cache $config)
 	{
@@ -530,7 +522,7 @@ class CodeIgniter
 	 */
 	protected function generateCacheName($config): string
 	{
-		if (is_cli())
+		if (is_cli() && ! (ENVIRONMENT == 'testing'))
 		{
 			return md5($this->request->getPath());
 		}
@@ -624,7 +616,7 @@ class CodeIgniter
 			return $this->path;
 		}
 
-		return is_cli() ? $this->request->getPath() : $this->request->uri->getPath();
+		return (is_cli() && ! (ENVIRONMENT == 'testing')) ? $this->request->getPath() : $this->request->uri->getPath();
 	}
 
 	//--------------------------------------------------------------------
@@ -664,27 +656,23 @@ class CodeIgniter
 			$controller = $this->controller;
 			return $controller(...$this->router->params());
 		}
-		else
+
+		// No controller specified - we don't know what to do now.
+		if (empty($this->controller))
 		{
-			// No controller specified - we don't know what to do now.
-			if (empty($this->controller))
-			{
-				throw new PageNotFoundException('Controller is empty.');
-			}
-			else
-			{
-				// Try to autoload the class
-				if ( ! class_exists($this->controller, true) || $this->method[0] === '_')
-				{
-					throw new PageNotFoundException('Controller or its method is not found.');
-				}
-				else if ( ! method_exists($this->controller, '_remap') &&
-						! is_callable([$this->controller, $this->method], false)
-				)
-				{
-					throw new PageNotFoundException('Controller method is not found.');
-				}
-			}
+			throw new PageNotFoundException('Controller is empty.');
+		}
+
+		// Try to autoload the class
+		if ( ! class_exists($this->controller, true) || $this->method[0] === '_')
+		{
+			throw new PageNotFoundException('Controller or its method is not found.');
+		}
+		else if ( ! method_exists($this->controller, '_remap') &&
+				! is_callable([$this->controller, $this->method], false)
+		)
+		{
+			throw new PageNotFoundException('Controller method is not found.');
 		}
 	}
 
@@ -785,29 +773,7 @@ class CodeIgniter
 			}
 		}
 
-		ob_start();
-
-		// These might show as unused here - but don't delete!
-		// They are used within the view files.
-		$heading = 'Page Not Found';
-		$message = $e->getMessage();
-
-		// Show the 404 error page
-		if (is_cli())
-		{
-			require APPPATH . 'Views/errors/cli/error_404.php';
-		}
-		else
-		{
-			require APPPATH . 'Views/errors/html/error_404.php';
-		}
-
-		$buffer = ob_get_contents();
-		ob_end_clean();
-
-		$this->response->setBody($buffer);
-		$this->response->send();
-		$this->callExit(EXIT_UNKNOWN_FILE);	// Unknown file
+		throw new PageNotFoundException(lang('HTTP.pageNotFound'));
 	}
 
 	//--------------------------------------------------------------------

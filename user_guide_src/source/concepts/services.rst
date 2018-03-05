@@ -33,9 +33,7 @@ the change happens automatically throughout your application without you having 
 you just need to take advantage of any new functionality and you're good to go. Very simple and
 error-resistant.
 
-.. note:: It is recommended to only create services within controllers. Other files, like models
-	and libraries should have the dependencies either passed into the constructor or through a
-	setter method.
+.. note:: It is recommended to only create services within controllers. Other files, like models and libraries should have the dependencies either passed into the constructor or through a setter method.
 
 Convenience Functions
 ---------------------
@@ -44,8 +42,8 @@ Two functions have been provided for getting a service. These functions are alwa
 
 The first is ``service()`` which returns a new instance of the requested service. The only
 required parameter is the service name. This is the same as the method name within the Services
-file..Always returns a SHARED instance of the class, so calling the function multiple times should
-always return the same instance.::
+file always returns a SHARED instance of the class, so calling the function multiple times should
+always return the same instance::
 
 	$logger = service('logger');
 
@@ -54,12 +52,9 @@ If the creation method requires additional parameters, they can be passed after 
 	$renderer = service('renderer', APPPATH.'views/');
 
 The second function, ``single_service()`` works just like ``service()`` but returns a new instance of
-the class:
+the class::
 
-    $logger = single_service('logger');
-
-
-
+	$logger = single_service('logger');
 
 Defining Services
 =================
@@ -76,7 +71,7 @@ create a new class that implements the ``RouterCollectionInterface``::
 
 	class MyRouter implements \CodeIgniter\Router\RouteCollectionInterface
 	{
-	    // Implement required methods here.
+		// Implement required methods here.
 	}
 
 Finally, modify **/application/Config/Services.php** to create a new instance of ``MyRouter``
@@ -84,11 +79,8 @@ instead of ``CodeIgniter\Router\RouterCollection``::
 
 	public static function routes()
 	{
-	    return new \App\Router\MyRouter();
+		return new \App\Router\MyRouter();
 	}
-
-	//--------------------------------------------------------------------
-
 
 Allowing Parameters
 -------------------
@@ -103,7 +95,7 @@ as a constructor parameter. The service method looks like this::
 
 	public static function renderer($viewPath=APPPATH.'views/')
 	{
-	    return new \CodeIgniter\View\View($viewPath);
+		return new \CodeIgniter\View\View($viewPath);
 	}
 
 This sets the default path in the constructor method, but allows for easily changing

@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,13 +29,13 @@
  *
  * @package	CodeIgniter
  * @author	CodeIgniter Dev Team
- * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright	2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license	https://opensource.org/licenses/MIT	MIT License
  * @link	https://codeigniter.com
  * @since	Version 3.0.0
  * @filesource
  */
-use CodeIgniter\DatabaseException;
+use \CodeIgniter\Database\Exceptions\DatabaseException;
 
 /**
  * Class BaseUtils
@@ -91,7 +91,7 @@ abstract class BaseUtils
 	 * List databases
 	 *
 	 * @return	array|bool
-	 * @throws \CodeIgniter\DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function listDatabases()
 	{
@@ -145,7 +145,7 @@ abstract class BaseUtils
 	 *
 	 * @param	string	$table_name
 	 * @return bool|mixed
-	 * @throws \CodeIgniter\DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function optimizeTable($table_name)
 	{
@@ -174,7 +174,7 @@ abstract class BaseUtils
 	 * Optimize Database
 	 *
 	 * @return mixed
-	 * @throws \CodeIgniter\DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function optimizeDatabase()
 	{
@@ -216,7 +216,7 @@ abstract class BaseUtils
 	 *
 	 * @param	string	$table_name
 	 * @return	mixed
-	 * @throws \CodeIgniter\DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function repairTable($table_name)
 	{
@@ -324,7 +324,7 @@ abstract class BaseUtils
 	 *
 	 * @param	array	$params
 	 * @return	mixed
-	 * @throws \CodeIgniter\DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function backup($params = [])
 	{

@@ -1,6 +1,5 @@
 <?php namespace Builder;
 
-use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\Query;
 use CodeIgniter\Database\MockConnection;
 
@@ -40,7 +39,7 @@ class InsertTest extends \CIUnitTestCase
 	{
 		$builder = $this->db->table('jobs');
 
-		$this->expectException('CodeIgniter\DatabaseException');
+		$this->expectException('\CodeIgniter\Database\Exceptions\DatabaseException');
 		$this->expectExceptionMessage('You must use the "set" method to update an entry.');
 
 		$builder->insert(null, true, true);
@@ -64,7 +63,7 @@ class InsertTest extends \CIUnitTestCase
 
 		$query = $this->db->getLastQuery();
 
-		$this->assertTrue($query instanceof Query);
+		$this->assertInstanceOf(Query::class, $query);
 
 		$raw = "INSERT INTO \"jobs\" (\"description\", \"id\", \"name\") VALUES (:description0:,:id0:,:name0:)";
 
@@ -81,7 +80,7 @@ class InsertTest extends \CIUnitTestCase
 	{
 	    $builder = $this->db->table('jobs');
 
-		$this->expectException('CodeIgniter\DatabaseException', 'You must use the "set" method to update an entry.');
+		$this->expectException('\CodeIgniter\Database\Exceptions\DatabaseException', 'You must use the "set" method to update an entry.');
 		$this->expectExceptionMessage('You must use the "set" method to update an entry.');
 		$builder->insertBatch();
 	}
@@ -92,7 +91,7 @@ class InsertTest extends \CIUnitTestCase
 	{
 		$builder = $this->db->table('jobs');
 
-		$this->expectException('CodeIgniter\DatabaseException');
+		$this->expectException('\CodeIgniter\Database\Exceptions\DatabaseException');
 		$this->expectExceptionMessage('insertBatch() called with no data');
 		$builder->insertBatch([]);
 	}

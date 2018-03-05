@@ -124,7 +124,7 @@ can maintain a "recycle bin" of objects that can be restored, or even simply pre
 part of a security trail. If true, the find* methods will only return non-deleted rows, unless
 the withDeleted() method is called prior to calling the find* method.
 
-This requires an INT or TINYINT field named ``deleted`` to be present in the table.
+This requires an INT or TINYINT field to be present in the table for storing state.The default field name is  ``deleted`` however this name can be configured to any name of your choice by using $deletedField property.
 
 **$allowedFields**
 
@@ -234,7 +234,6 @@ Returns the first row in the result set. This is best used in combination with t
 	$user = $userModel->where('deleted', 0)
 	                  ->first();
 
-
 **withDeleted()**
 
 If $useSoftDeletes is true, then the find* methods will not return any rows where 'deleted = 1'. To
@@ -254,7 +253,7 @@ Whereas withDeleted() will return both deleted and not-deleted rows, this method
 the next find* methods to return only soft deleted rows::
 
 	$deletedUsers = $userModel->onlyDeleted()
-							  ->findAll();
+	                          ->findAll();
 
 Saving Data
 -----------
@@ -391,7 +390,7 @@ Deletes multiple records from the model's table based on the criteria pass into 
 
 	// Complex where
 	$userModel->deleteWhere([
-		'status' => 'inactive',
+		'status'      => 'inactive',
 		'warn_lvl >=' => 50
 	]);
 
@@ -416,15 +415,15 @@ be applied. If you have custom error message that you want to use, place them in
 
 	class UserModel extends Model
 	{
-		protected $validationRules = [
-			'username' => 'required|alpha_numeric_space|min_length[3]',
-			'email'    => 'required|valid_email|is_unique[users.email]',
-			'password' => 'required|min_length[8]',
+		protected $validationRules    = [
+			'username'     => 'required|alpha_numeric_space|min_length[3]',
+			'email'        => 'required|valid_email|is_unique[users.email]',
+			'password'     => 'required|min_length[8]',
 			'pass_confirm' => 'required_with[password]|matches[password]'
 		];
 
 		protected $validationMessages = [
-			'email' => [
+			'email'        => [
 				'is_unique' => 'Sorry. That email has already been taken. Please choose another.'
 			]
 		];
@@ -457,6 +456,37 @@ and simply set ``$validationRules`` to the name of the validation rule group you
 		protected $validationRules = 'users';
 	}
 
+Validation Placeholders
+-----------------------
+
+The model provides a simple method to replace parts of your rules based on data that's being passed into it. This
+sounds fairly obscure but can be especially handy with the ``is_unique`` validation rule. Placeholders are simply
+the name of the field (or array key) that was passed in as $data surrounded by curly brackets. It will be
+replaced by the **value** of the matched incoming field. An example should clarify this::
+
+    protected $validationRules = [
+        'email' => 'required|valid_email|is_unique[users.email,id,{id}]'
+    ];
+
+In this set of rules, it states that the email address should be unique in the database, except for the row
+that has an id matching the placeholder's value. Assuming that the form POST data had the following::
+
+    $_POST = [
+        'id' => 4,
+        'email' => 'foo@example.com'
+    ]
+
+then the ``{id}`` placeholder would be replaced with the number **4**, giving this revised rule::
+
+    protected $validationRules = [
+        'email' => 'required|valid_email|is_unique[users.email,id,4]'
+    ];
+
+So it will ignore the row in the database that has ``id=4`` when it verifies the email is unique.
+
+This can also be used to create more dynamic rules at runtime, as long as you take care that any dynamic
+keys passed in don't conflict with your form data.
+
 Protecting Fields
 -----------------
 
@@ -472,8 +502,8 @@ Occasionally, you will find times where you need to be able to change these elem
 testing, migrations, or seeds. In these cases, you can turn the protection on or off::
 
 	$model->protect(false)
-		  ->insert($data)
-		  ->protect(true);
+	      ->insert($data)
+	      ->protect(true);
 
 Working With Query Builder
 --------------------------
@@ -489,13 +519,12 @@ You can also use Query Builder methods and the Model's CRUD methods in the same 
 very elegant use::
 
 	$users = $userModel->where('status', 'active')
-						->orderBy('last_login', 'asc')
-						->findAll();
+			   ->orderBy('last_login', 'asc')
+			   ->findAll();
 
 .. note:: You can also access the model's database connection seamlessly::
 
 			$user_name = $userModel->escape($name);
-
 
 Runtime Return Type Changes
 ----------------------------
@@ -523,7 +552,6 @@ Returns data from the next find*() method as standard objects or custom class in
 	// Return as custom class instances
 	$users = $userModel->asObject('User')->findWhere('status', 'active');
 
-
 Processing Large Amounts of Data
 --------------------------------
 
@@ -540,41 +568,6 @@ This is best used during cronjobs, data exports, or other large tasks.
 		// do something.
 		// $data is a single row of data.
 	});
-
-Obfuscating IDs in URLs
------------------------
-
-Instead of displaying the resource's ID in the URL (i.e. /users/123), the model provides a simple
-way to obfuscate the ID. This provides some protection against attackers simply incrementing IDs in the
-URL to do bad things to your data.
-
-This is not a valid security use, but another simple layer of protection. Determined attackers could very easily
-determine the actual ID.
-
-The data is not stored in the database at any time, it is simply used to disguise the ID. When creating a URL
-you can use the **encodeID()** method to get the hashed ID.
-::
-
-	// Creates something like: http://exmample.com/users/MTIz
-	$url = '/users/'. $model->encodeID($user->id);
-
-When you need to grab the item in your controller, you can use the **findByHashedID()** method instead of the
-**find()** method.
-::
-
-	public function show($hashedID)
-	{
-		$user = $this->model->findByHashedID($hashedID);
-	}
-
-If you ever need to decode the hash, you may do so with the **decodeID()** method.
-::
-
-	$hash = $model->encodeID(123);
-	$check = $model->decodeID($hash);
-
-.. note:: While the name is "hashed id", this is not actually a hashed variable, but that term has become
-		common in many circles to represent the encoding of an ID into a short, unique, identifier.
 
 Model Events
 ============
@@ -625,25 +618,36 @@ passed to each event:
 ================ =========================================================================================================
 Event            $data contents
 ================ =========================================================================================================
-beforeInsert	  **data** = the key/value pairs that are being inserted. If an object or Entity class is passed to the insert
-				  method, it is first converted to an array.
-afterInsert		  **data** = the original key/value pairs being inserted. **result** = the results of the insert() method
-				  used through the Query Builder.
-beforeUpdate	  **id** = the primary key of the row being updated. **data** = the key/value pairs that are being
-				  inserted. If an object or Entity class is passed to the insert method, it is first converted to an array.
-afterUpdate		  **id** = the primary key of the row being updated. **data** = the original key/value pairs being updated.
-				  **result** = the results of the update() method used through the Query Builder.
-afterFind		  Varies by find* method. See the following:
-- find()		  **id** = the primary key of the row being searched for. **data** = The resulting row of data, or null if
-				  no result found.
-- findWhere()	  **data** = the resulting rows of data, or null if no result found.
-- findAll()		  **data** = the resulting rows of data, or null if no result found. **limit** = the number of rows to find.
-				  **offset** = the number of rows to skip during the search.
-- first()		  **data** = the resulting row found during the search, or null if none found.
-afterDelete		  Varies by delete* method. See the following:
-- delete()		  **id** = primary key of row being deleted. **purge** boolean whether soft-delete rows should be
-				  hard deleted. **result** = the result of the delete() call on the Query Builder. **data** = unused.
-- deleteWhere()	  **key**/**value** = the key/value pair used to search for rows to delete. **purge** boolean whether
-				  soft-delete rows should be hard deleted. **result** = the result of the delete() call on the Query
-				  Builder. **data** = unused.
+beforeInsert      **data** = the key/value pairs that are being inserted. If an object or Entity class is passed to the
+                  insert method, it is first converted to an array.
+afterInsert       **data** = the original key/value pairs being inserted.
+                  **result** = the results of the insert() method used through the Query Builder.
+beforeUpdate      **id** = the primary key of the row being updated.
+                  **data** = the key/value pairs that are being inserted. If an object or Entity class is passed to the
+                  insert method, it is first converted to an array.
+afterUpdate       **id** = the primary key of the row being updated.
+                  **data** = the original key/value pairs being updated.
+                  **result** = the results of the update() method used through the Query Builder.
+afterFind         Varies by find* method. See the following:
+- find()          **id** = the primary key of the row being searched for.
+                  **data** = The resulting row of data, or null if no result found.
+- findWhere()     **data** = the resulting rows of data, or null if no result found.
+- findAll()       **data** = the resulting rows of data, or null if no result found.
+                  **limit** = the number of rows to find.
+                  **offset** = the number of rows to skip during the search.
+- first()         **data** = the resulting row found during the search, or null if none found.
+beforeDelete      Varies by delete* method. See the following:
+- delete()        **id** = primary key of row being deleted.
+                  **purge** = boolean whether soft-delete rows should be hard deleted.
+- deleteWhere()   **key**/**value** = the key/value pair used to search for rows to delete.
+                  **purge** = boolean whether soft-delete rows should be hard deleted.
+afterDelete       Varies by delete* method. See the following:
+- delete()        **id** = primary key of row being deleted.
+                  **purge** = boolean whether soft-delete rows should be hard deleted.
+                  **result** = the result of the delete() call on the Query Builder.
+                  **data** = unused.
+- deleteWhere()	  **key**/**value** = the key/value pair used to search for rows to delete.
+                  **purge** boolean whether soft-delete rows should be hard deleted.
+                  **result** = the result of the delete() call on the Query Builder.
+                  **data** = unused.
 ================ =========================================================================================================

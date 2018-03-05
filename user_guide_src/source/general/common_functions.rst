@@ -78,6 +78,32 @@ Service Accessors
 
 	For more information, see the :doc:`Localization </libraries/localization>` page.
 
+.. php:function:: old( $key[, $default = null, [, $escape = 'html' ]] )
+
+	:param string $key: The name of the old form data to check for.
+	:param mixed  $default: The default value to return if $key doesn't exist.
+	:param mixed  $escape: An `escape <#esc>`_ context or false to disable it.
+	:returns: The value of the defined key, or the default value.
+	:rtype: mixed
+
+	Provides a simple way to access "old input data" from submitting a form.
+
+	Example::
+
+		// in controller, checking form submittal
+		if (! $model->save($user))
+		{
+			// 'withInput' is what specifies "old data"
+			// should be saved.
+			return redirect()->back()->withInput();
+		}
+
+		// In the view
+		<input type="email" name="email" value="<?= old('email') ?>">
+
+.. note:: If you are using the :doc:`form helper </helpers/form_helper>`, this feature is built-in. You only
+		need to use this function when not using the form helper.
+
 .. php:function:: session( [$key] )
 
 	:param string $key: The name of the session item to check for.
@@ -193,29 +219,26 @@ Miscellaneous Functions
 	Context can be used to substitute values in the message string. For full details, see the
 	:doc:`Logging Information <logging>` page.
 
-.. php:function:: redirect( $uri[, ...$params ] )
+.. php:function:: redirect( string $uri )
 
 	:param  string  $uri: The URI to redirect the user to.
-	:param  mixed   $params: one or more additional parameters that can be used with the :meth:`RouteCollection::reverseRoute` method.
 
-	Convenience method that works with the current global ``$request`` and
-	``$router`` instances to redirect using named/reverse-routed routes
-	to determine the URL to go to. If nothing is found, will treat
-	as a traditional redirect and pass the string in, letting
-	``$response->redirect()`` determine the correct method and code.
+	Returns a RedirectResponse instance allowing you to easily create redirects::
 
-	If more control is needed, you must use ``$response->redirect()`` explicitly.
+		// Go back to the previous page
+		return redirect()->back();
 
-.. php:function:: redirect_with_input( $uri[, ...$params] )
+		// Go to specific UI
+		return redirect()->to('/admin');
 
-	:param string $uri: The URI to redirect the user to.
-	:param mixed  $params: one or more additional parameters that can be used with the :meth:`RouteCollection::reverseRoute` method.
+		// Go to a named/reverse-routed URI
+		return redirect()->route('named_route');
 
-	Identical to the ``redirect()`` method, except this flashes the request's $_GET and $_POST values to the session.
-	On the next page request, the form helper ``set_*`` methods will check for data within the old input first, then,
-	if it's not found, the current GET/POST will be checked.
+		// Keep the old input values upon redirect so they can be used by the `old()` function
+		return redirect()->back()->withInput();
 
-	.. note:: In order to retrieve the old, the session MUST be started prior to calling the function.
+		// Set a flash message
+		return redirect()->back()->with('foo', 'message');
 
 .. php:function:: remove_invisible_characters($str[, $url_encoded = TRUE])
 
@@ -278,7 +301,6 @@ Miscellaneous Functions
 
 	Helper function used to convert a string, array, or object of attributes to a string.
 
-
 ================
 Global Constants
 ================
@@ -311,7 +333,6 @@ Core Constants
 .. php:const:: WRITEPATH
 
 	The path to the **writable** directory.
-
 
 Time Constants
 ==============

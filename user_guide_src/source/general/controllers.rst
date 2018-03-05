@@ -206,7 +206,6 @@ Trying to access it via the URL, like this, will not work::
 
 	example.com/index.php/blog/utility/
 
-
 Organizing Your Controllers into Sub-directories
 ================================================
 
@@ -330,7 +329,7 @@ has details on the format of the rules and messages arrays, as well as available
     {
         if (! $this->validate([
             'email' => "required|is_unique[users.email,id,{$userID}]",
-            'name' => 'required|alpha_numeric_spaces'
+            'name'  => 'required|alpha_numeric_spaces'
         ]))
         {
             return view('users/update', [

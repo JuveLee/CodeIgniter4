@@ -97,30 +97,31 @@ For get the file instance::
 
 	$file = $this->request->getFile('my-form.details.avatar');
 
-
 Multiple files
 ^^^^^^^^^^^^^^
+::
 
-	<input type="file" name="images[]" multiple />
+    <input type="file" name="images[]" multiple />
 
 In controller::
-	if($imagefile = $this->request->getFiles())
-	{  
-	   foreach($imagefile['images'] as $Im)
-	   {
-	      if ($im->isValid() && ! $im->hasMoved())
-	      {
-	           $newName = $img->getRandomName();
-	           $img->move(WRITEPATH.'uploads', $newName);
-	      }
-	   }
-	}
 
-	where the **images** is loop is from the form field name
-	
+    if($imagefile = $this->request->getFiles())
+    {
+       foreach($imagefile['images'] as $img)
+       {
+          if ($img->isValid() && ! $img->hasMoved())
+          {
+               $newName = $img->getRandomName();
+               $img->move(WRITEPATH.'uploads', $newName);
+          }
+       }
+    }
+
+where the **images** is loop is from the form field name
+
 If there are multiple files with the same name you can use ``getFile()`` ro retrieve every file individually::
 In controller::
-	
+
 	$file1 = $this->request->getFile('images.0');
 	$file2 = $this->request->getFile('images.1');
 
@@ -134,7 +135,7 @@ In controller::
 	$file1 = $this->request->getFile('my-form.details.avatars.0');
 	$file2 = $this->request->getFile('my-form.details.avatars.1');
 
-.. note:: using ``getFiles()`` is more appropriate 
+.. note:: using ``getFiles()`` is more appropriate
 
 =====================
 Working With the File
@@ -187,7 +188,6 @@ Always returns the original name of the uploaded file as sent by the client, eve
 To get the full path of the temp file that was created during the upload, you can use the ``getTempName()`` method::
 
 	$tempfile = $file->getTempName();
-
 
 Other File Info
 ---------------

@@ -24,7 +24,6 @@ Available Functions
 
 The following functions are available:
 
-
 .. php:function:: img([$src = ''[, $indexPage = false[, $attributes = '']]])
 
     :param  string  $src:        Image source data
@@ -54,13 +53,13 @@ The following functions are available:
     Example::
 
         $imageProperties = array(
-            'src'   => 'images/picture.jpg',
-            'alt'   => 'Me, demonstrating how to eat 4 slices of pizza at one time',
-            'class' => 'post_images',
-            'width' => '200',
-            'height'=> '200',
-            'title' => 'That was quite a night',
-            'rel'   => 'lightbox'
+            'src'    => 'images/picture.jpg',
+            'alt'    => 'Me, demonstrating how to eat 4 slices of pizza at one time',
+            'class'  => 'post_images',
+            'width'  => '200',
+            'height' => '200',
+            'title'  => 'That was quite a night',
+            'rel'    => 'lightbox'
         );
 
         img($imageProperties);
@@ -182,12 +181,12 @@ The following functions are available:
         );
 
         $list = array(
-            'colors'  => array(
+            'colors' => array(
                 'red',
                 'blue',
                 'green'
             ),
-            'shapes'  => array(
+            'shapes' => array(
                 'round',
                 'square',
                 'circles' => array(
@@ -198,7 +197,7 @@ The following functions are available:
             ),
             'moods'  => array(
                 'happy',
-                'upset' => array(
+                'upset'   => array(
                     'defeated' => array(
                         'dejected',
                         'disheartened',
@@ -347,7 +346,6 @@ The following functions are available:
 
     Identical to :php:func:`video()`, only it produces the <audio> tag instead of <video>.
 
-
 .. php:function:: source($src = ''[, $type = false[, $attributes = '']])
 
     :param  string  $src:        The path of the media resource
@@ -376,7 +374,6 @@ The following functions are available:
 
         echo embed('movie.mov', 'video/quicktime', 'class="test"');
         // <embed src="movie.mov" type="video/quicktime" class="test"/>
-
 
 .. php:function:: object($data = ''[, $type = false[, $attributes = '']])
 
@@ -414,7 +411,6 @@ The following functions are available:
           <param name="hello" type="ref" value="world" class="test" />
         </object>
 
-
 .. php:function:: param($name = ''[, $type = false[, $attributes = '']])
 
     :param  string  $name:       The name of the parameter
@@ -429,7 +425,6 @@ The following functions are available:
         echo param('movie.mov', 'video/quicktime', 'class="test"');
         // <param src="movie.mov" type="video/quicktime" class="test"/>
 
-
 .. php:function:: track($name = ''[, $type = false[, $attributes = '']])
 
     :param  string  $name:       The name of the parameter
@@ -443,7 +438,6 @@ The following functions are available:
 
         echo track('subtitles_no.vtt', 'subtitles', 'no', 'Norwegian No');
         // <track src="subtitles_no.vtt" kind="subtitles" srclang="no" label="Norwegian No" />
-
 
 .. php:function:: doctype([$type = 'html5'])
 

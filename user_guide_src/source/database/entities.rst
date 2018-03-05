@@ -67,11 +67,11 @@ Create the model first at **application/Models/UserModel.php** so that we can in
 
     class UserModel extends Model
     {
-        protected $table = 'users';
+        protected $table         = 'users';
         protected $allowedFields = [
             'username', 'email', 'password'
         ];
-        protected $returnType = 'App\Entities\User';
+        protected $returnType    = 'App\Entities\User';
         protected $useTimestamps = true;
     }
 
@@ -103,7 +103,7 @@ Now that all of the pieces are in place, you would work with the Entity class as
     // Create
     $user = new App\Entities\User();
     $user->username = 'foo';
-    $user->email = 'foo@example.com';
+    $user->email    = 'foo@example.com';
     $userModel->save($user);
 
 You may have noticed that the User class has all of the properties as **protected** not **public**, but you can still
@@ -161,7 +161,7 @@ Here's an updated User entity to provide some examples of how this could be used
         {
             $this->created_at = new \DateTime($datetime, new \DateTimeZone('UTC'));
 
-            return
+            return $this;
         }
 
         public function getCreatedAt(string $format = 'Y-m-d H:i:s')
@@ -198,7 +198,6 @@ business logic and create objects that are pleasant to use.
     // Auto-hash the password - both do the same thing
     $user->password = 'my great password';
     $user->setPassword('my great password');
-
 
 Data Mapping
 ============
@@ -263,7 +262,6 @@ through the original ``$user->full_name``, also, as this is needed for the model
 to the database. However, ``unset`` and ``isset`` only work on the mapped property, ``$name``, not on the original name,
 ``full_name``.
 
-
 Mutators
 ========
 
@@ -271,7 +269,7 @@ Date Mutators
 -------------
 
 By default, the Entity class will convert fields named `created_at`, `updated_at`, or `deleted_at` into
-:doc:`Time </libraries/time>`_ instances whenever they are set or retrieved. The Time class provides a large number
+:doc:`Time </libraries/time>` instances whenever they are set or retrieved. The Time class provides a large number
 of helpful methods in a immutable, localized way.
 
 You can define which properties are automatically converted by adding the name to the **options['dates']** array::
@@ -326,7 +324,7 @@ For example, if you had a User entity with an **is_banned** property, you can ca
     {
         protected $is_banned;
 
-        protected _$options = [
+        protected $_options = [
             'casts' => [
                 'is_banned' => 'boolean'
             ]
@@ -348,17 +346,17 @@ you can cast properties into, the **array** cast type will serialize the value w
     {
         protected $options;
 
-        protected _$options = [
+        protected $_options = [
             'casts' => [
                 'options' => 'array'
             ]
         ];
     }
 
-    $user = $userModel->find(15);
+    $user    = $userModel->find(15);
     $options = $user->options;
 
     $options['foo'] = 'bar';
 
-    $user->options = $options;
+    $user->options  = $options;
     $userModel->save($user);

@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,21 +29,22 @@
  *
  * @package      CodeIgniter
  * @author       CodeIgniter Dev Team
- * @copyright    2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright    2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license      https://opensource.org/licenses/MIT	MIT License
  * @link         https://codeigniter.com
  * @since        Version 3.0.0
  * @filesource
  */
-use CodeIgniter\I18n\Time;
-use CodeIgniter\Pager\Pager;
-use CodeIgniter\Validation\ValidationInterface;
 use Config\App;
 use Config\Database;
+use CodeIgniter\I18n\Time;
+use CodeIgniter\Pager\Pager;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Database\BaseBuilder;
 use CodeIgniter\Database\BaseConnection;
 use CodeIgniter\Database\ConnectionInterface;
+use CodeIgniter\Validation\ValidationInterface;
+use CodeIgniter\Database\Exceptions\DatabaseException;
 
 /**
  * Class Model
@@ -163,6 +164,13 @@ class Model
 	 */
 	protected $tempUseSoftDeletes;
 
+    /**
+	 * The column used to save soft delete state
+	 *
+	 * @var string
+	 */
+	protected $deletedField = 'deleted';
+
 	/**
 	 * Used by asArray and asObject to provide
 	 * temporary overrides of model default.
@@ -221,7 +229,7 @@ class Model
 	/**
 	 * Our validator instance.
 	 *
-	 * @var \CodeIgniter\Validation\ValidationInterface
+	 * @var \CodeIgniter\Validation\Validation
 	 */
 	protected $validation;
 
@@ -240,6 +248,7 @@ class Model
 	protected $beforeUpdate = [];
 	protected $afterUpdate = [];
 	protected $afterFind = [];
+	protected $beforeDelete = [];
 	protected $afterDelete = [];
 
 	//--------------------------------------------------------------------
@@ -275,8 +284,9 @@ class Model
 
 		if (is_null($validation))
 		{
-			$validation = \Config\Services::validation();
+			$validation = \Config\Services::validation(null, false);
 		}
+
 		$this->validation = $validation;
 	}
 
@@ -299,18 +309,18 @@ class Model
 
 		if ($this->tempUseSoftDeletes === true)
 		{
-			$builder->where('deleted', 0);
+			$builder->where($this->deletedField, 0);
 		}
 
 		if (is_array($id))
 		{
-			$row = $builder->whereIn($this->primaryKey, $id)
+			$row = $builder->whereIn($this->table.'.'.$this->primaryKey, $id)
 					->get();
 			$row = $row->getResult($this->tempReturnType);
 		}
 		else
 		{
-			$row = $builder->where($this->primaryKey, $id)
+			$row = $builder->where($this->table.'.'.$this->primaryKey, $id)
 					->get();
 
 			$row = $row->getFirstRow($this->tempReturnType);
@@ -340,7 +350,7 @@ class Model
 
 		if ($this->tempUseSoftDeletes === true)
 		{
-			$builder->where('deleted', 0);
+			$builder->where($this->deletedField, 0);
 		}
 
 		$rows = $builder->where($key, $value)
@@ -373,7 +383,7 @@ class Model
 
 		if ($this->tempUseSoftDeletes === true)
 		{
-			$builder->where('deleted', 0);
+			$builder->where($this->deletedField, 0);
 		}
 
 		$row = $builder->limit($limit, $offset)
@@ -403,14 +413,14 @@ class Model
 
 		if ($this->tempUseSoftDeletes === true)
 		{
-			$builder->where('deleted', 0);
+			$builder->where($this->deletedField, 0);
 		}
 
 		// Some databases, like PostgreSQL, need order
 		// information to consistently return correct results.
 		if (empty($builder->QBOrderBy))
 		{
-			$builder->orderBy($this->primaryKey, 'asc');
+			$builder->orderBy($this->table.'.'.$this->primaryKey, 'asc');
 		}
 
 		$row = $builder->limit(1, 0)
@@ -423,142 +433,6 @@ class Model
 		$this->tempReturnType = $this->returnType;
 
 		return $row['data'];
-	}
-
-	//--------------------------------------------------------------------
-
-	/**
-	 * Finds a single record by a "hashed" primary key. Used in conjunction
-	 * with $this->getIDHash().
-	 *
-	 * THIS IS NOT VALID TO USE FOR SECURITY!
-	 *
-	 * @param string $hashedID
-	 *
-	 * @return array|null|object
-	 */
-	public function findByHashedID(string $hashedID)
-	{
-		return $this->find($this->decodeID($hashedID));
-	}
-
-	//--------------------------------------------------------------------
-
-	/**
-	 * Returns a "hashed id", which isn't really hashed, but that's
-	 * become a fairly common term for this. Essentially creates
-	 * an obfuscated id, intended to be used to disguise the
-	 * ID from incrementing IDs to get access to things they shouldn't.
-	 *
-	 * THIS IS NOT VALID TO USE FOR SECURITY!
-	 *
-	 * Note, at some point we might want to move to something more
-	 * complex. The hashid library is good, but only works on integers.
-	 *
-	 * @see http://hashids.org/php/
-	 * @see http://raymorgan.net/web-development/how-to-obfuscate-integer-ids/
-	 *
-	 * @param int|string $id
-	 *
-	 * @return string|false
-	 */
-	public function encodeID($id)
-	{
-		// Strings don't currently have a secure
-		// method, so simple base64 encoding will work for now.
-		if ( ! is_numeric($id))
-		{
-			return '=_' . base64_encode($id);
-		}
-
-		$id = (int) $id;
-		if ($id < 1)
-		{
-			return false;
-		}
-		if ($id > pow(2, 31))
-		{
-			return false;
-		}
-
-		$segment1 = $this->getHash($id, 16);
-		$segment2 = $this->getHash($segment1, 8);
-		$dec = (int) base_convert($segment2, 16, 10);
-		$dec = ($dec > $id) ? $dec - $id : $dec + $id;
-		$segment2 = base_convert($dec, 10, 16);
-		$segment2 = str_pad($segment2, 8, '0', STR_PAD_LEFT);
-		$segment3 = $this->getHash($segment1 . $segment2, 8);
-		$hex = $segment1 . $segment2 . $segment3;
-		$bin = pack('H*', $hex);
-		$oid = base64_encode($bin);
-		$oid = str_replace(['+', '/', '='], ['$', ':', ''], $oid);
-
-		return $oid;
-	}
-
-	//--------------------------------------------------------------------
-
-	/**
-	 * Decodes our hashed id.
-	 *
-	 * @see http://raymorgan.net/web-development/how-to-obfuscate-integer-ids/
-	 *
-	 * @param string $hash
-	 *
-	 * @return mixed
-	 */
-	public function decodeID($hash)
-	{
-		// Was it a simple string we encoded?
-		if (substr($hash, 0, 2) == '=_')
-		{
-			$hash = substr($hash, 2);
-
-			return base64_decode($hash);
-		}
-
-		if ( ! preg_match('/^[A-Z0-9\:\$]{21,23}$/i', $hash))
-		{
-			return 0;
-		}
-		$hash = str_replace(['$', ':'], ['+', '/'], $hash);
-		$bin = base64_decode($hash);
-		$hex = unpack('H*', $bin);
-		$hex = $hex[1];
-		if ( ! preg_match('/^[0-9a-f]{32}$/', $hex))
-		{
-			return 0;
-		}
-		$segment1 = substr($hex, 0, 16);
-		$segment2 = substr($hex, 16, 8);
-		$segment3 = substr($hex, 24, 8);
-		$exp2 = $this->getHash($segment1, 8);
-		$exp3 = $this->getHash($segment1 . $segment2, 8);
-		if ($segment3 != $exp3)
-		{
-			return 0;
-		}
-		$v1 = (int) base_convert($segment2, 16, 10);
-		$v2 = (int) base_convert($exp2, 16, 10);
-		$id = abs($v1 - $v2);
-
-		return $id;
-	}
-
-	//--------------------------------------------------------------------
-
-	/**
-	 * Used for our hashed IDs. Requires $salt to be defined
-	 * within the Config\App file.
-	 *
-	 * @param string $str
-	 * @param int    $len
-	 *
-	 * @return string
-	 */
-	protected function getHash($str, $len)
-	{
-		return substr(hash('sha256', $str . $this->salt), 0, $len);
 	}
 
 	//--------------------------------------------------------------------
@@ -609,6 +483,7 @@ class Model
 	 * properties as an array suitable for use in creates and updates.
 	 *
 	 * @param string|object $data
+	 * @param string $dateFormat
 	 *
 	 * @return array
 	 */
@@ -811,19 +686,21 @@ class Model
 	 * @param bool  $purge Allows overriding the soft deletes setting.
 	 *
 	 * @return mixed
-	 * @throws DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function delete($id, $purge = false)
 	{
+		$this->trigger('beforeDelete', ['id' => $id, 'purge' => $purge]);
+
 		if ($this->useSoftDeletes && ! $purge)
 		{
-            $set['deleted'] = 1;
+            $set[$this->deletedField] = 1;
 
             if ($this->useTimestamps)
             {
                 $set[$this->updatedField] = $this->setDate();
             }
-            
+
 			$result = $this->builder()
 					->where($this->primaryKey, $id)
 					->update($set);
@@ -851,7 +728,7 @@ class Model
 	 * @param bool         $purge Allows overriding the soft deletes setting.
 	 *
 	 * @return mixed
-	 * @throws DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function deleteWhere($key, $value = null, $purge = false)
 	{
@@ -861,9 +738,11 @@ class Model
 			throw new DatabaseException('You must provided a valid key to deleteWhere.');
 		}
 
+		$this->trigger('beforeDelete', ['key' => $key, 'value' => $value, 'purge' => $purge]);
+
 		if ($this->useSoftDeletes && ! $purge)
 		{
-            $set['deleted'] = 1;
+            $set[$this->deletedField] = 1;
 
             if ($this->useTimestamps)
             {
@@ -893,7 +772,6 @@ class Model
 	 * through soft deletes (deleted = 1)
 	 *
 	 * @return bool|mixed
-	 * @throws DatabaseException
 	 */
 	public function purgeDeleted()
 	{
@@ -903,7 +781,7 @@ class Model
 		}
 
 		return $this->builder()
-						->where('deleted', 1)
+						->where($this->deletedField, 1)
 						->delete();
 	}
 
@@ -937,7 +815,7 @@ class Model
 		$this->tempUseSoftDeletes = false;
 
 		$this->builder()
-				->where('deleted', 1);
+				->where($this->deletedField, 1);
 
 		return $this;
 	}
@@ -988,7 +866,7 @@ class Model
 	 * @param int      $size
 	 * @param \Closure $userFunc
 	 *
-	 * @throws DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	public function chunk($size = 100, \Closure $userFunc)
 	{
@@ -1115,7 +993,7 @@ class Model
 	 * @param array $data
 	 *
 	 * @return array
-	 * @throws DatabaseException
+	 * @throws \CodeIgniter\Database\Exceptions\DatabaseException
 	 */
 	protected function doProtectFields($data)
 	{
@@ -1272,11 +1150,103 @@ class Model
 		}
 		else
 		{
-			$this->validation->setRules($this->validationRules, $this->validationMessages);
+			// Replace any placeholders (i.e. {id}) in the rules with
+			// the value found in $data, if exists.
+			$rules = $this->fillPlaceholders($this->validationRules, $data);
+
+			$this->validation->setRules($rules, $this->validationMessages);
 			$valid = $this->validation->run($data);
 		}
 
 		return (bool) $valid;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Replace any placeholders within the rules with the values that
+	 * match the 'key' of any properties being set. For example, if
+	 * we had the following $data array:
+	 *
+	 * [ 'id' => 13 ]
+	 *
+	 * and the following rule:
+	 *
+	 *  'required|is_unique[users,email,id,{id}]'
+	 *
+	 * The value of {id} would be replaced with the actual id in the form data:
+	 *
+	 *  'required|is_unique[users,email,id,13]'
+	 *
+	 * @param array $rules
+	 * @param array $data
+	 *
+	 * @return array
+	 */
+	protected function fillPlaceholders(array $rules, array $data)
+	{
+		$replacements = [];
+
+		foreach ($data as $key => $value)
+		{
+			$replacements["{{$key}}"] = $value;
+		}
+
+		if (! empty($replacements))
+		{
+			foreach ($rules as &$rule)
+			{
+				if (is_array($rule))
+				{
+					foreach ($rule as &$row)
+					{
+						$row = strtr($row, $replacements);
+					}
+					continue;
+				}
+
+				$rule = strtr($rule, $replacements);
+			}
+		}
+
+		return $rules;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Returns the model's defined validation rules so that they
+	 * can be used elsewhere, if needed.
+	 *
+	 * @return array
+	 */
+	public function getValidationRules(array $options=[])
+	{
+		$rules = $this->validationRules;
+
+		if (isset($options['except']))
+		{
+			$rules = array_diff_key($rules, array_flip($options['except']));
+		}
+		elseif (isset($options['only']))
+		{
+			$rules = array_intersect_key($rules, array_flip($options['only']));
+		}
+
+		return $rules;
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Returns the model's define validation messages so they
+	 * can be used elsewhere, if needed.
+	 *
+	 * @return array
+	 */
+	public function getValidationMessages()
+	{
+		return $this->validationMessages;
 	}
 
 	//--------------------------------------------------------------------
@@ -1364,11 +1334,11 @@ class Model
 
 		if (method_exists($this->db, $name))
 		{
-			$result = call_user_func_array([$this->db, $name], $params);
+			$result = $this->db->$name(...$params);
 		}
-		elseif (method_exists($this->builder(), $name))
+		elseif (method_exists($builder = $this->builder(), $name))
 		{
-			$result = call_user_func_array([$this->builder(), $name], $params);
+			$result = $builder->$name(...$params);
 		}
 
 		// Don't return the builder object unless specifically requested

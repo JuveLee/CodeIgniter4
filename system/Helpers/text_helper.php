@@ -6,7 +6,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
  * @package      CodeIgniter
  * @author       EllisLab Dev Team
  * @copyright    2008-2014 EllisLab, Inc. (https://ellislab.com/)
- * @copyright    2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright    2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license      https://opensource.org/licenses/MIT	MIT License
  * @link         https://codeigniter.com
  * @since        Version 1.0.0
@@ -441,7 +441,7 @@ if ( ! function_exists('word_wrap'))
 	function word_wrap(string $str, int $charlim = 76): string
 	{
 		// Set the character limit
-		is_numeric($charlim) OR $charlim = 76;
+		is_numeric($charlim) || $charlim = 76;
 
 		// Reduce multiple spaces
 		$str = preg_replace('| +|', ' ', $str);

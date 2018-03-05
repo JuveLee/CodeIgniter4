@@ -111,14 +111,13 @@ This must be called before you add the route::
 	$routes->addPlaceholder('uuid', '[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}');
 	$routes->add('users/(:uuid)', 'Users::show/$1');
 
-
 Regular Expressions
 ===================
 
 If you prefer you can use regular expressions to define your routing rules. Any valid regular expression
 is allowed, as are back-references.
 
-.. important::Note: If you use back-references you must use the dollar syntax rather than the double backslash syntax.
+.. important:: Note: If you use back-references you must use the dollar syntax rather than the double backslash syntax.
     A typical RegEx route might look something like this::
 
 	$routes->add('products/([a-z]+)/(\d+)', '$1::id_$2');
@@ -139,7 +138,6 @@ For those of you who don’t know regular expressions and want to learn more abo
 
 .. important:: Note: You can also mix and match wildcards with regular expressions.
 
-
 Closures
 ========
 
@@ -147,12 +145,11 @@ You can use an anonymous function, or Closure, as the destination that a route m
 executed when the user visits that URI. This is handy for quickly executing small tasks, or even just showing
 a simple view::
 
-	$routes->add('feed', function()
-		{
-			$rss = new RSSFeeder();
-			return $rss->feed('general');
-		{
-	);
+    $routes->add('feed', function()
+    {
+        $rss = new RSSFeeder();
+        return $rss->feed('general');
+    });
 
 Mapping multiple routes
 =======================
@@ -166,7 +163,6 @@ define an array of routes and then pass it as the first parameter to the `map()`
 	$routes['product/(:alphanum)'] = 'Catalog::productLookupByName';
 
 	$collection->map($routes);
-
 
 Redirecting Routes
 ==================
@@ -197,7 +193,7 @@ extensive set of routes that all share the opening string, like when building an
 	$routes->group('admin', function($routes)
 	{
 		$routes->add('users', 'Admin\Users::index');
-		$routes->add('blog',  'Admin\Blog::index');
+		$routes->add('blog', 'Admin\Blog::index');
 	});
 
 This would prefix the 'users' and 'blog" URIs with "admin", handling URLs like ``/admin/users`` and ``/admin/blog``.
@@ -214,6 +210,15 @@ It is possible to nest groups within groups for finer organization if you need i
 
 This would handle the URL at ``admin/users/list``.
 
+If you need to assign options to a group, like a `namespace <#assigning-namespace>`_, do it before the callback::
+
+	$routes->group('api', ['namespace' => 'App\API\v1'], function($routes)
+	{
+		$routes->resource('users');
+	});
+
+This would handle a resource route to the ``App\API\v1\Users`` controller with the ``/api/users`` URI.
+
 Environment Restrictions
 ========================
 
@@ -226,7 +231,6 @@ routes defined within this closure are only accessible from the given environmen
 	{
 		$routes->add('builder', 'Tools\Builder::index');
 	});
-
 
 Reverse Routing
 ===============
@@ -258,9 +262,9 @@ with the name of the route::
     // The route is defined as:
     $routes->add('users/(:id)/gallery(:any)', 'Galleries::showUserGallery/$1/$2', ['as' => 'user_gallery');
 
-	// Generate the relative URL to link to user ID 15, gallery 12
-	// Generates: /users/15/gallery/12
-	<a href="<?= route_to('user_gallery', 15, 12) ?>">View Gallery</a>
+    // Generate the relative URL to link to user ID 15, gallery 12
+    // Generates: /users/15/gallery/12
+    <a href="<?= route_to('user_gallery', 15, 12) ?>">View Gallery</a>
 
 This has the added benefit of making the views more readable, too.
 
@@ -298,22 +302,19 @@ creates the five most common routes needed for full CRUD of a resource: create a
 list all of that resource, show a single resource, and delete a single resource. The first parameter is the resource
 name::
 
-	$routes->resource('photos');
+    $routes->resource('photos');
 
-	// Equivalent to the following:
-	$routes->get('photos',                    'Photos::index');
-	$routes->get('photos/new',                'Photos::new');
-	$routes->get('photos/(:segment)/edit',    'Photos::edit/$1');
-	$routes->get('photos/(:segment)',         'Photos::show/$1');
-	$routes->post('photos',                   'Photos::create');
-    $routes->patch('photos/(:segment)',       'Photos::update/$1');
-	$routes->put('photos/(:segment)',         'Photos::update/$1');
-	$routes->delete('photos/(:segment)',      'Photos::delete/$1');
+    // Equivalent to the following:
+    $routes->get('photos',                 'Photos::index');
+    $routes->get('photos/new',             'Photos::new');
+    $routes->get('photos/(:segment)/edit', 'Photos::edit/$1');
+    $routes->get('photos/(:segment)',      'Photos::show/$1');
+    $routes->post('photos',                'Photos::create');
+    $routes->patch('photos/(:segment)',    'Photos::update/$1');
+    $routes->put('photos/(:segment)',      'Photos::update/$1');
+    $routes->delete('photos/(:segment)',   'Photos::delete/$1');
 
-.. important:: The routes are matched in the order they are specified, so if you have a resource photos above a get 'photos/poll'
-the show action's route for the resource line will be matched before the get line. To fix this, move the get line above the resource
-line so that it is matched first.
-
+.. important:: The routes are matched in the order they are specified, so if you have a resource photos above a get 'photos/poll' the show action's route for the resource line will be matched before the get line. To fix this, move the get line above the resource line so that it is matched first.
 
 The second parameter accepts an array of options that can be used to modify the routes that are generated. While these
 routes are geared toward API-usage, where more methods are allowed, you can pass in the 'websafe' option to have it
@@ -331,7 +332,7 @@ Change the Controller Used
 You can specify the controller that should be used by passing in the ``controller`` option with the name of
 the controller that should be used::
 
-	$routes->resources('photos', ['controller' =>'App\Gallery']);
+	$routes->resource('photos', ['controller' =>'App\Gallery']);
 
 	// Would create routes like:
 	$routes->get('photos', 'App\Gallery::index');
@@ -342,7 +343,7 @@ Change the Placeholder Used
 By default, the ``segment`` placeholder is used when a resource ID is needed. You can change this by passing
 in the ``placeholder`` option with the new string to use::
 
-	$routes->resources('photos', ['placeholder' => '(:id)']);
+	$routes->resource('photos', ['placeholder' => '(:id)']);
 
 	// Generates routes like:
 	$routes->get('photos/(:id)', 'Photos::show/$1');
@@ -350,17 +351,21 @@ in the ``placeholder`` option with the new string to use::
 Limit the Routes Made
 ---------------------
 
-You can restrict the routes generated with the ``only`` option. This should be an array of method names that should
+You can restrict the routes generated with the ``only`` option. This should be an array or comma separated list of method names that should
 be created. Only routes that match one of these methods will be created. The rest will be ignored::
 
-	$routes->resources('photos', ['only' => ['index', 'show']]);
+	$routes->resource('photos', ['only' => ['index', 'show']]);
+
+Otherwise you can remove unused routes with the ``except`` option. This option run after ``only``::
+
+	$routes->resource('photos', ['except' => 'new,edit']);
 
 Valid methods are: index, show, create, update, new, edit and delete.
 
 Global Options
 ==============
 
-All of the methods for creating a route (add, get, post, resources, etc) can take an array of options that
+All of the methods for creating a route (add, get, post, resource, etc) can take an array of options that
 can modify the generated routes, or further restrict them. The ``$options`` array is always the last parameter::
 
 	$routes->add('from', 'to', $options);
@@ -372,7 +377,7 @@ can modify the generated routes, or further restrict them. The ``$options`` arra
 	$routes->delete('from', 'to', $options);
 	$routes->patch('from', 'to', $options);
 	$routes->match(['get', 'put'], 'from', 'to', $options);
-	$routes->resources('photos', $options);
+	$routes->resource('photos', $options);
 	$routes->map($array, $options);
 	$routes->group('name', $options, function());
 
@@ -434,7 +439,6 @@ be used when the first parameter is a language string::
 	// Creates:
 	$routes['users/(:num)'] = 'users/show/$2';
 
-
 Routes Configuration Options
 ============================
 
@@ -451,11 +455,10 @@ controller::
     $routes->setDefaultNamespace('');
 
     // Controller is \Users
-	$routes->add('users', 'Users::index');
+    $routes->add('users', 'Users::index');
 
-	// Controller is \Admin\Users
-	$routes->add('users', 'Admin\Users::index');
-
+    // Controller is \Admin\Users
+    $routes->add('users', 'Admin\Users::index');
 
 If your controllers are not explicitly namespaced, there is no need to change this. If you namespace your controllers,
 then you can change this value to save typing::
@@ -523,7 +526,8 @@ a valid class/method pair, just like you would show in any route, or a Closure::
     $routes->set404Override('App\Errors::show404');
 
     // Will display a custom view
-    $routes->set404Override(function(){
+    $routes->set404Override(function()
+    {
         echo view('my_errors/not_found.html');
     });
 

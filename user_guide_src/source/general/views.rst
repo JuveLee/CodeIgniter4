@@ -35,7 +35,7 @@ To load and display a particular view file you will use the following function::
 
 	echo view('name');
 
-Where _name_ is the name of your view file.
+Where *name* is the name of your view file.
 
 .. important:: The .php file extension does not need to be specified, but all views are expected to end with the .php extension.
 
@@ -123,7 +123,7 @@ Data is passed from the controller to the view by way of an array in the second 
 Here's an example::
 
 	$data = [
-		'title' => 'My title',
+		'title'   => 'My title',
 		'heading' => 'My Heading',
 		'message' => 'My Message'
 	];
@@ -136,7 +136,7 @@ Let's try it with your controller file. Open it and add this code::
 	{
 		public function index()
 		{
-			$data['title'] = "My Real Title";
+			$data['title']   = "My Real Title";
 			$data['heading'] = "My Real Heading";
 
 			echo view('blogview', $data);
@@ -163,7 +163,7 @@ into the `$option` array in the third parameter.
 ::
 
 	$data = [
-		'title' => 'My title',
+		'title'   => 'My title',
 		'heading' => 'My Heading',
 		'message' => 'My Message'
 	];

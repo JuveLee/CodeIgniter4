@@ -1,13 +1,13 @@
 <?php namespace CodeIgniter;
 
-use CodeIgniter\HTTP;
+use CodeIgniter\HTTP\UserAgent;
 use Config\App;
 
 /**
  * Exercise our core Controller class.
  * Not a lot of business logic, so concentrate on making sure
  * we can exercise everything without blowing up :-/
- * 
+ *
  * @backupGlobals enabled
  */
 class ControllerTest extends \CIUnitTestCase
@@ -42,7 +42,7 @@ class ControllerTest extends \CIUnitTestCase
 		Services::reset();
 
 		$this->config = new App();
-		$this->request = new \CodeIgniter\HTTP\IncomingRequest($this->config, new \CodeIgniter\HTTP\URI('https://somwhere.com'));
+		$this->request = new \CodeIgniter\HTTP\IncomingRequest($this->config, new \CodeIgniter\HTTP\URI('https://somwhere.com'), null, new UserAgent());
 		$this->response = new \CodeIgniter\HTTP\Response($this->config);
 		$this->codeigniter = new MockCodeIgniter($this->config);
 	}
@@ -53,7 +53,7 @@ class ControllerTest extends \CIUnitTestCase
 	{
 		// make sure we can instantiate one
 		$this->controller = new Controller($this->request, $this->response);
-		$this->assertTrue($this->controller instanceof Controller);
+		$this->assertInstanceOf(Controller::class, $this->controller);
 	}
 
 	public function testConstructorHTTPS()
@@ -66,7 +66,7 @@ class ControllerTest extends \CIUnitTestCase
 
 			protected $forceHTTPS = 1;
 		};
-		$this->assertTrue($this->controller instanceof Controller);
+		$this->assertInstanceOf(Controller::class, $this->controller);
 		$_SERVER = $original; // restore so code coverage doesn't break
 	}
 
@@ -82,7 +82,7 @@ class ControllerTest extends \CIUnitTestCase
 		// make sure we can instantiate one
 		$this->controller = new Controller($this->request, $this->response);
 		// and that we can attempt validation, with no rules
-		$this->assertTrue($this->controller->validate([]));
+		$this->assertFalse($this->controller->validate([]));
 	}
 
 	//--------------------------------------------------------------------
@@ -93,7 +93,7 @@ class ControllerTest extends \CIUnitTestCase
 
 			protected $helpers = ['cookie', 'text'];
 		};
-		$this->assertTrue($this->controller instanceof Controller);
+		$this->assertInstanceOf(Controller::class, $this->controller);
 	}
 
 }

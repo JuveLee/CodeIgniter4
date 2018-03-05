@@ -1,12 +1,12 @@
 <?php namespace CodeIgniter\API;
 
-use CodeIgniter\API\ResponseTrait;
 use CodeIgniter\Controller;
 use CodeIgniter\Format\JSONFormatter;
 use CodeIgniter\Format\XMLFormatter;
 use CodeIgniter\HTTP\MockIncomingRequest;
 use CodeIgniter\HTTP\MockResponse;
 use CodeIgniter\HTTP\URI;
+use CodeIgniter\HTTP\UserAgent;
 
 class ResponseTraitTest extends \CIUnitTestCase
 {
@@ -45,7 +45,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 
 		$config = array_merge($config, $userConfig);
 
-		$this->request = new MockIncomingRequest((object) $config, new URI($uri), null);
+		$this->request = new MockIncomingRequest((object) $config, new URI($uri), null, new UserAgent());
 		$this->response = new MockResponse((object) $config);
 
 		// Insert headers into request.
@@ -113,7 +113,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 
 		$this->assertEquals(201, $this->response->getStatusCode());
 		$this->assertEquals('something', $this->response->getBody());
-		$this->assertTrue(strpos($this->response->getHeaderLine('Content-Type'), 'text/html') === 0);
+		$this->assertStringStartsWith('text/html', $this->response->getHeaderLine('Content-Type'));
 		$this->assertEquals('Created', $this->response->getReason());
 	}
 
@@ -139,7 +139,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 			'status' => 500,
 			'error' => 'WHAT!',
 			'messages' => [
-				'Failure to Launch'
+				'error' => 'Failure to Launch'
 			]
 		];
 
@@ -177,7 +177,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 			'status' => 401,
 			'error' => 'FAT CHANCE',
 			'messages' => [
-				'Nope'
+				'error' => 'Nope'
 			]
 		];
 
@@ -195,7 +195,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 			'status' => 403,
 			'error' => 'FAT CHANCE',
 			'messages' => [
-				'Nope'
+				'error' => 'Nope'
 			]
 		];
 
@@ -213,7 +213,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 			'status' => 404,
 			'error' => 'FAT CHANCE',
 			'messages' => [
-				'Nope'
+				'error' => 'Nope'
 			]
 		];
 
@@ -231,7 +231,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 			'status' => 400,
 			'error' => 'FAT CHANCE',
 			'messages' => [
-				'Nope'
+				'error' => 'Nope'
 			]
 		];
 
@@ -249,7 +249,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 			'status' => 409,
 			'error' => 'FAT CHANCE',
 			'messages' => [
-				'Nope'
+				'error' => 'Nope'
 			]
 		];
 
@@ -267,7 +267,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 			'status' => 410,
 			'error' => 'FAT CHANCE',
 			'messages' => [
-				'Nope'
+				'error' => 'Nope'
 			]
 		];
 
@@ -285,7 +285,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 			'status' => 429,
 			'error' => 'FAT CHANCE',
 			'messages' => [
-				'Nope'
+				'error' => 'Nope'
 			]
 		];
 
@@ -305,7 +305,7 @@ class ResponseTraitTest extends \CIUnitTestCase
 					'status' => 500,
 					'error' => 'FAT-CHANCE',
 					'messages' => [
-						'Nope.'
+						'error' => 'Nope.'
 					]
 				]), $this->response->getBody());
 	}

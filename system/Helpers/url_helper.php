@@ -6,7 +6,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,7 +28,7 @@
  *
  * @package    CodeIgniter
  * @author     CodeIgniter Dev Team
- * @copyright  2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright  2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license    https://opensource.org/licenses/MIT    MIT License
  * @link       https://codeigniter.com
  * @since      Version 3.0.0
@@ -105,7 +105,7 @@ if ( ! function_exists('base_url'))
 		// We should be using the set baseURL the user set
 		// otherwise get rid of the path because we have
 		// no way of knowing the intent...
-		$config = \CodeIgniter\Services::request()->config;
+		$config = \CodeIgniter\Config\Services::request()->config;
 
 		if ( ! empty($config->baseURL))
 		{
@@ -113,7 +113,7 @@ if ( ! function_exists('base_url'))
 		}
 		else
 		{
-			$url = \CodeIgniter\Services::request($config, false)->uri;
+			$url = \CodeIgniter\Config\Services::request($config, false)->uri;
 			$url->setPath('/');
 		}
 
@@ -123,6 +123,13 @@ if ( ! function_exists('base_url'))
 		if ( ! empty($path))
 		{
 			$url = $url->resolveRelativeURI($path);
+		}
+
+		// If the scheme wasn't provided, check to
+		// see if it was a secure request
+		if (empty($scheme) && \CodeIgniter\Config\Services::request()->isSecure())
+		{
+			$scheme = 'https';
 		}
 
 		if ( ! empty($scheme))
@@ -152,7 +159,7 @@ if ( ! function_exists('current_url'))
 	 */
 	function current_url(bool $returnObject = false)
 	{
-		return $returnObject === true ? \CodeIgniter\Services::request()->uri : (string) \CodeIgniter\Services::request()->uri;
+		return $returnObject === true ? \CodeIgniter\Config\Services::request()->uri : (string) \CodeIgniter\Config\Services::request()->uri;
 	}
 
 }
@@ -177,7 +184,7 @@ if ( ! function_exists('previous_url'))
 		// Grab from the session first, if we have it,
 		// since it's more reliable and safer.
 		// Otherwise, grab a sanitized version from $_SERVER.
-		$referer = $_SESSION['_ci_previous_url'] ?? \CodeIgniter\Services::request()->getServer('HTTP_REFERER', FILTER_SANITIZE_URL);
+		$referer = $_SESSION['_ci_previous_url'] ?? \CodeIgniter\Config\Services::request()->getServer('HTTP_REFERER', FILTER_SANITIZE_URL);
 
 		$referer = empty($referer) ? site_url('/') : $referer;
 
@@ -200,7 +207,7 @@ if ( ! function_exists('uri_string'))
 	 */
 	function uri_string(): string
 	{
-		return \CodeIgniter\Services::request()->uri->getPath();
+		return \CodeIgniter\Config\Services::request()->uri->getPath();
 	}
 
 }
@@ -327,7 +334,7 @@ if ( ! function_exists('anchor_popup'))
 
 		foreach (['width' => '800', 'height' => '600', 'scrollbars' => 'yes', 'menubar' => 'no', 'status' => 'yes', 'resizable' => 'yes', 'screenx' => '0', 'screeny' => '0'] as $key => $val)
 		{
-			$atts[$key] = isset($attributes[$key]) ? $attributes[$key] : $val;
+			$atts[$key] = $attributes[$key] ?? $val;
 			unset($attributes[$key]);
 		}
 
@@ -558,14 +565,14 @@ if ( ! function_exists('prep_url'))
 	 */
 	function prep_url($str = ''): string
 	{
-		if ($str === 'http://' OR $str === '')
+		if ($str === 'http://' || $str === '')
 		{
 			return '';
 		}
 
 		$url = parse_url($str);
 
-		if ( ! $url OR ! isset($url['scheme']))
+		if ( ! $url || ! isset($url['scheme']))
 		{
 			return 'http://' . $str;
 		}

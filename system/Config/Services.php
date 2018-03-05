@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
  *
  * @package	CodeIgniter
  * @author	CodeIgniter Dev Team
- * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright	2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license	https://opensource.org/licenses/MIT	MIT License
  * @link	https://codeigniter.com
  * @since	Version 3.0.0
@@ -66,6 +66,13 @@ class Services
 	 * @var array
 	 */
 	static protected $instances = [];
+
+	/**
+	 * Mock objects for testing which are returned if exist.
+	 *
+	 * @var array
+	 */
+	static protected $mocks = [];
 
 	//--------------------------------------------------------------------
 
@@ -172,8 +179,36 @@ class Services
 		}
 
 		return new \CodeIgniter\HTTP\CURLRequest(
-				$config, new \CodeIgniter\HTTP\URI(), $response, $options
+				$config,
+				new \CodeIgniter\HTTP\URI(isset($options['base_uri']) ? : null),
+				$response,
+				$options
 		);
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * The Email class allows you to send email via mail, sendmail, SMTP.
+	 *
+	 * @param null $config
+	 * @param bool $getShared
+	 *
+	 * @return \CodeIgniter\Email\Email|mixed
+	 */
+	public static function email($config = null, $getShared = true)
+	{
+		if ($getShared)
+		{
+			return self::getSharedInstance('email', $config);
+		}
+
+		if (empty($config))
+		{
+			$config = new \Config\Email();
+		}
+
+		return new \CodeIgniter\Email\Email($config);
 	}
 
 	//--------------------------------------------------------------------
@@ -185,12 +220,12 @@ class Services
 	 *  - set_error_handler
 	 *  - register_shutdown_function
 	 *
-	 * @param \Config\App $config
-	 * @param bool        $getShared
+	 * @param \Config\Exceptions $config
+	 * @param bool               $getShared
 	 *
 	 * @return \CodeIgniter\Debug\Exceptions
 	 */
-	public static function exceptions(\Config\App $config = null, $getShared = true)
+	public static function exceptions(\Config\Exceptions $config = null, $getShared = true)
 	{
 		if ($getShared)
 		{
@@ -199,10 +234,10 @@ class Services
 
 		if (empty($config))
 		{
-			$config = new \Config\App();
+			$config = new \Config\Exceptions();
 		}
 
-		return new \CodeIgniter\Debug\Exceptions($config);
+		return (new \CodeIgniter\Debug\Exceptions($config));
 	}
 
 	//--------------------------------------------------------------------
@@ -299,7 +334,7 @@ class Services
 	{
 		if ($getShared)
 		{
-			return self::getSharedInstance('language', $locale);
+			return self::getSharedInstance('language', $locale)->setLocale($locale);
 		}
 
 		$locale = ! empty($locale) ? $locale : self::request()->getLocale();
@@ -349,7 +384,6 @@ class Services
 	}
 
 	//--------------------------------------------------------------------
-
 
 	/**
 	 * @param \CodeIgniter\Config\BaseConfig            $config
@@ -504,7 +538,10 @@ class Services
 		}
 
 		return new \CodeIgniter\HTTP\IncomingRequest(
-				$config, new \CodeIgniter\HTTP\URI()
+				$config,
+				new \CodeIgniter\HTTP\URI(),
+				'php://input',
+				new \CodeIgniter\HTTP\UserAgent()
 		);
 	}
 
@@ -531,6 +568,34 @@ class Services
 		}
 
 		return new \CodeIgniter\HTTP\Response($config);
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * The Redirect class provides nice way of working with redirects.
+	 *
+	 * @param \Config\App $config
+	 * @param bool        $getShared
+	 *
+	 * @return \CodeIgniter\HTTP\Response
+	 */
+	public static function redirectResponse(\Config\App $config = null, $getShared = true)
+	{
+		if ($getShared)
+		{
+			return self::getSharedInstance('redirectResponse', $config);
+		}
+
+		if ( ! is_object($config))
+		{
+			$config = new \Config\App();
+		}
+
+		$response = new \CodeIgniter\HTTP\RedirectResponse($config);
+		$response->setProtocolVersion(self::request()->getProtocolVersion());
+
+		return $response;
 	}
 
 	//--------------------------------------------------------------------
@@ -801,6 +866,12 @@ class Services
 	 */
 	protected static function getSharedInstance(string $key, ...$params)
 	{
+		// Returns mock if exists
+		if (isset(static::$mocks[$key]))
+		{
+			return static::$mocks[$key];
+		}
+
 		if ( ! isset(static::$instances[$key]))
 		{
 			// Make sure $getShared is false
@@ -831,6 +902,32 @@ class Services
 		{
 			return Services::$name(...$arguments);
 		}
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Reset shared instances and mocks for testing.
+	 */
+	public static function reset()
+	{
+		static::$mocks = [];
+
+		static::$instances = [];
+	}
+
+	//--------------------------------------------------------------------
+
+	/**
+	 * Inject mock object for testing.
+	 *
+	 * @param string $name
+	 * @param $mock
+	 */
+	public static function injectMock(string $name, $mock)
+	{
+		$name = strtolower($name);
+		static::$mocks[$name] = $mock;
 	}
 
 	//--------------------------------------------------------------------

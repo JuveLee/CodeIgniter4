@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
  *
  * @package     CodeIgniter
  * @author      CodeIgniter Dev Team
- * @copyright   2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright   2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license     https://opensource.org/licenses/MIT  MIT License
  * @link        https://codeigniter.com
  * @since       Version 3.0.0
@@ -37,7 +37,7 @@
  */
 use CodeIgniter\HTTP\RequestInterface;
 use CodeIgniter\HTTP\ResponseInterface;
-use CodeIgniter\Services;
+use Config\Services;
 
 /**
  * Common Functions
@@ -285,7 +285,8 @@ if ( ! function_exists('session'))
 		// Returning a single item?
 		if (is_string($val))
 		{
-			return $_SESSION[$val] ?? null;
+			helper('array');
+			return dot_array_search($val, $_SESSION);
 		}
 
 		return \Config\Services::session();
@@ -339,7 +340,7 @@ if ( ! function_exists('service'))
 	 *
 	 * These are equal:
 	 *  - $timer = service('timer')
-	 *  - $timer = \CodeIgniter\Services::timer();
+	 *  - $timer = \CodeIgniter\Config\Services::timer();
 	 *
 	 * @param string $name
 	 * @param array  ...$params
@@ -348,9 +349,6 @@ if ( ! function_exists('service'))
 	 */
 	function service(string $name, ...$params)
 	{
-		// Ensure it IS a shared instance
-		array_push($params, true);
-
 		return Services::$name(...$params);
 	}
 
@@ -712,6 +710,43 @@ if ( ! function_exists('force_https'))
 
 //--------------------------------------------------------------------
 
+if (! function_exists('old'))
+{
+	/**
+	 * Provides access to "old input" that was set in the session
+	 * during a redirect()->withInput().
+	 *
+	 * @param string       $key
+	 * @param null         $default
+	 * @param string|bool  $escape
+	 *
+	 * @return mixed|null
+	 */
+	function old(string $key, $default = null, $escape = 'html')
+	{
+		$request = Services::request();
+
+		$value = $request->getOldInput($key);
+
+		// Return the default value if nothing
+		// found in the old input.
+		if (is_null($value))
+		{
+			return $default;
+		}
+
+		// If the result was serialized array or string, then unserialize it for use...
+		if (substr($value, 0, 2) == 'a:' || substr($value, 0, 2) == 's:')
+		{
+			$value = unserialize($value);
+		}
+
+		return $escape === false ? $value : esc($value, $escape);
+	}
+}
+
+//--------------------------------------------------------------------
+
 if ( ! function_exists('redirect'))
 {
 
@@ -725,64 +760,19 @@ if ( ! function_exists('redirect'))
 	 * If more control is needed, you must use $response->redirect explicitly.
 	 *
 	 * @param string $uri
-	 * @param array  $params
-	 */
-	function redirect(string $uri, ...$params)
-	{
-		$response = Services::response(null, true);
-		$routes = Services::routes(true);
-
-		if ($route = $routes->reverseRoute($uri, ...$params))
-		{
-			$uri = $route;
-		}
-
-		return $response->redirect($uri);
-	}
-
-}
-
-//--------------------------------------------------------------------
-
-if ( ! function_exists('redirect_with_input'))
-{
-
-	/**
-	 * Identical to the redirect() method, except that this will
-	 * send the current $_GET and $_POST contents in a _ci_old_input
-	 * variable flashed to the session, which can then be retrieved
-	 * via the old() method.
 	 *
-	 * @param string $uri
-	 * @param array  ...$params
+	 * @return \CodeIgniter\HTTP\RedirectResponse
 	 */
-	function redirect_with_input(string $uri, ...$params)
+	function redirect(string $uri=null)
 	{
-		$session = Services::session();
+		$response = Services::redirectResponse(null, true);
 
-		// Ensure we have the session started up.
-		if ( ! isset($_SESSION))
+		if (! empty($uri))
 		{
-			$session->start();
+			return $response->to($uri);
 		}
 
-		$input = [
-			'get'	 => $_GET ?? [],
-			'post'	 => $_POST ?? [],
-		];
-
-		$session->setFlashdata('_ci_old_input', $input);
-
-		// If the validator has any errors, transmit those back
-		// so they can be displayed when the validation is
-		// handled within a method different than displaying the form.
-		$validator = Services::validation();
-		if (! empty($validator->getErrors()))
-		{
-			$session->setFlashdata('_ci_validation_errors', serialize($validator->getErrors()));
-		}
-
-		redirect($uri, ...$params);
+		return $response;
 	}
 
 }

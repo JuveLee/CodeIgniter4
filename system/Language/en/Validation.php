@@ -7,7 +7,7 @@
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -29,7 +29,7 @@
  *
  * @package      CodeIgniter
  * @author       CodeIgniter Dev Team
- * @copyright    2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright    2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license      https://opensource.org/licenses/MIT	MIT License
  * @link         https://codeigniter.com
  * @since        Version 3.0.0
@@ -39,7 +39,7 @@
 return [
 	// Core Messages
 	'noRuleSets'            => 'No rulesets specified in Validation configuration.',
-	'ruleNotFound'          => '{field} is not a valid rule.',
+	'ruleNotFound'          => '{rule} is not a valid rule.',
 	'groupNotFound'         => '%s is not a validation rules group.',
 	'groupNotArray'         => '%s rule group must be an array.',
 
@@ -47,7 +47,8 @@ return [
 	'alpha'                 => 'The {field} field may only contain alphabetical characters.',
 	'alpha_dash'            => 'The {field} field may only contain alpha-numeric characters, underscores, and dashes.',
 	'alpha_numeric'         => 'The {field} field may only contain alpha-numeric characters.',
-	'alpha_numeric_spaces'  => 'The {field} field may only contain alpha-numeric characters and spaces.',
+	'alpha_numeric_space'  => 'The {field} field may only contain alpha-numeric characters and spaces.',
+	'alpha_space'  			=> 'The {field} field may only contain alphabetical characters and spaces.',
 	'decimal'               => 'The {field} field must contain a decimal number.',
 	'differs'               => 'The {field} field must differ from the {param} field.',
 	'exact_length'          => 'The {field} field must be exactly {param} characters in length.',
@@ -74,6 +75,7 @@ return [
 	'valid_emails'          => 'The {field} field must contain all valid email addresses.',
 	'valid_ip'              => 'The {field} field must contain a valid IP.',
 	'valid_url'             => 'The {field} field must contain a valid URL.',
+	'valid_date'            => 'The {field} field must contain a valid date.',
 
 	// Credit Cards
 	'valid_cc_num'          => '{field} does not appear to be a valid credit card number.',

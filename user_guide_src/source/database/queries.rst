@@ -64,13 +64,11 @@ the following::
 
 	$db->prefixTable('tablename'); // outputs prefix_tablename
 
-
 If for any reason you would like to change the prefix programatically
 without needing to create a new connection, you can use this method::
 
 	$db->setPrefix('newprefix');
 	$db->prefixTable('tablename'); // outputs newprefix_tablename
-
 
 **********************
 Protecting identifiers
@@ -93,7 +91,6 @@ have a prefix specified in your database config file. To enable the
 prefixing set TRUE (boolean) via the second parameter::
 
 	$db->protectIdentifiers('table_name', TRUE);
-
 
 ****************
 Escaping Queries
@@ -125,14 +122,13 @@ this:
 
         $search = '20% raise';
         $sql = "SELECT id FROM table WHERE column LIKE '%" .
-            $db->escapeLikeString($search)."%' ESCAPE '!'";
+        $db->escapeLikeString($search)."%' ESCAPE '!'";
 
 .. important:: The ``escapeLikeString()`` method uses '!' (exclamation mark)
 	to escape special characters for *LIKE* conditions. Because this
 	method escapes partial strings that you would wrap in quotes
 	yourself, it cannot automatically add the ``ESCAPE '!'``
 	condition for you, and so you'll have to manually do that.
-
 
 **************
 Query Bindings
@@ -168,10 +164,14 @@ Instead of using the question mark to mark the location of the bound values,
 you can name the bindings, allowing the keys of the values passed in to match
 placeholders in the query::
 
-	$sql = "SELECT * FROM some_table WHERE id = :id AND status = :status AND author = :name";
-	$db->query($sql, ['id'     => 3,
-					  'status' => 'live',
-					  'name'   => 'Rick']);
+        $sql = "SELECT * FROM some_table WHERE id = :id: AND status = :status: AND author = :name:";
+        $db->query($sql, [
+                'id'     => 3,
+                'status' => 'live',
+                'name'   => 'Rick'
+        ]);
+
+.. note:: Each name in the query MUST be surrounded by colons.
 
 ***************
 Handling Errors
@@ -179,7 +179,7 @@ Handling Errors
 
 **$db->error();**
 
-If you need to get the last error that has occured, the error() method
+If you need to get the last error that has occurred, the error() method
 will return an array containing its code and message. Here's a quick
 example::
 
@@ -187,7 +187,6 @@ example::
 	{
 		$error = $db->error(); // Has keys 'code' and 'message'
 	}
-
 
 ****************
 Prepared Queries
@@ -213,11 +212,11 @@ as placeholders. This returns a PreparedQuery object::
     $pQuery = $db->prepare(function($db)
     {
         return $db->table('user')
-                  ->insert([
-                      'name' => 'x',
-                      'email' => 'y',
-                      'country' => 'US'
-                  ]);
+                   ->insert([
+                        'name'    => 'x',
+                        'email'   => 'y',
+                        'country' => 'US'
+                   ]);
     });
 
 If you don't want to use the Query Builder, you can create the Query object manually, using question marks for
@@ -252,16 +251,16 @@ query::
     $pQuery = $db->prepare(function($db)
     {
         return $db->table('user')
-                  ->insert([
-                      'name' => 'x',
-                      'email' => 'y',
-                      'country' => 'US'
-                  ]);
+                   ->insert([
+                        'name'    => 'x',
+                        'email'   => 'y',
+                        'country' => 'US'
+                   ]);
     });
 
     // Collect the Data
-    $name = 'John Doe';
-    $email = 'j.doe@example.com';
+    $name    = 'John Doe';
+    $email   = 'j.doe@example.com';
     $country = 'US';
 
     // Run the Query

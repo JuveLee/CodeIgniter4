@@ -284,17 +284,6 @@ class App extends BaseConfig
 
 	/*
 	|--------------------------------------------------------------------------
-	| Error Views Path
-	|--------------------------------------------------------------------------
-	| This is the path to the directory that contains the 'cli' and 'html'
-	| directories that hold the views used to generate errors.
-	|
-	| Default: APPPATH.'Views/errors'
-	*/
-	public $errorViewPath = APPPATH.'Views/errors';
-
-	/*
-	|--------------------------------------------------------------------------
 	| Application Salt
 	|--------------------------------------------------------------------------
 	|
@@ -303,7 +292,6 @@ class App extends BaseConfig
 	| and can be of any length, though the more random the characters
 	| the better.
 	|
-	| If you use the Model class' hashedID methods, this must be filled out.
 	*/
 	public $salt = '';
 

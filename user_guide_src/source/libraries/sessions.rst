@@ -102,7 +102,6 @@ current request after you no longer need it.
 
     $session->destroy();
 
-
 What is Session Data?
 =====================
 
@@ -211,6 +210,14 @@ Or you can call ``has()``::
 
 	$session->has('some_name');
 
+Pushing new value to session data
+=================================
+
+The push method is used to push a new value onto a session value that is an array.
+For instance, if the 'hobbies' key contains an array of hobbies, you can add a new value onto the array like so::
+
+$session->push('hobbies', ['sport'=>'tennis']);
+
 Removing Session Data
 =====================
 
@@ -237,7 +244,6 @@ This method also accepts an array of item keys to unset::
 
 	$array_items = array('username', 'email');
 	$session->remove($array_items);
-
 
 Flashdata
 =========
@@ -489,7 +495,7 @@ By default, the `Files Driver`_ will be used when a session is initialized,
 because it is the most safe choice and is expected to work everywhere
 (virtually every environment has a file system).
 
-However, any other driver may be selected via the ``$config['sessionDriver']``
+However, any other driver may be selected via the ``public $sessionDriver``
 line in your **application/Config/App.php** file, if you chose to do so.
 Have it in mind though, every driver has different caveats, so be sure to
 get yourself familiar with them (below) before you make that choice.
@@ -508,7 +514,7 @@ To be more specific, it doesn't support PHP's `directory level and mode
 formats used in session.save_path
 <http://php.net/manual/en/session.configuration.php#ini.session.save-path>`_,
 and it has most of the options hard-coded for safety. Instead, only
-absolute paths are supported for ``$config['sess_save_path']``.
+absolute paths are supported for ``public $sessionSavePath``.
 
 Another important thing that you should know, is to make sure that you
 don't use a publicly-readable or shared directory for storing your session
@@ -566,7 +572,7 @@ table that we already mentioned and then set it as your
 For example, if you would like to use 'ci_sessions' as your table name,
 you would do this::
 
-	public $sessionDriver = 'database';
+	public $sessionDriver   = 'database';
 	public $sessionSavePath = 'ci_sessions';
 
 And then of course, create the database table ...
@@ -660,13 +666,13 @@ link you to it:
 For the most common case however, a simple ``host:port`` pair should be
 sufficient::
 
-	public $sessionDiver = 'redis';
+	public $sessionDiver    = 'redis';
 	public $sessionSavePath = 'tcp://localhost:6379';
 
 Memcached Driver
 ----------------
 
-.. note:: Since Memcache doesn't have a locking mechanism exposed, locks
+.. note:: Since Memcached doesn't have a locking mechanism exposed, locks
 	for this driver are emulated by a separate value that is kept for
 	up to 300 seconds.
 
@@ -688,7 +694,7 @@ considered as it may result in loss of sessions.
 The ``$sessionSavePath`` format is fairly straightforward here,
 being just a ``host:port`` pair::
 
-	public $sessionDriver = 'memcached';
+	public $sessionDriver   = 'memcached';
 	public $sessionSavePath = 'localhost:11211';
 
 Bonus Tip

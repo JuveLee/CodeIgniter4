@@ -9,7 +9,7 @@ use CodeIgniter\I18n\Time;
  *
  * This content is released under the MIT License (MIT)
  *
- * Copyright (c) 2014-2017 British Columbia Institute of Technology
+ * Copyright (c) 2014-2018 British Columbia Institute of Technology
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -31,7 +31,7 @@ use CodeIgniter\I18n\Time;
  *
  * @package	CodeIgniter
  * @author	CodeIgniter Dev Team
- * @copyright	2014-2017 British Columbia Institute of Technology (https://bcit.ca/)
+ * @copyright	2014-2018 British Columbia Institute of Technology (https://bcit.ca/)
  * @license	https://opensource.org/licenses/MIT	MIT License
  * @link	https://codeigniter.com
  * @since	Version 3.0.0
@@ -144,7 +144,7 @@ class Entity
 			$result = $this->mutateDate($result);
 		}
 		// Or cast it as something?
-		else if (array_key_exists($key, $this->_options['casts']))
+		else if (isset($this->_options['casts'][$key]) && ! empty($this->_options['casts'][$key]))
 		{
 			$result = $this->castAs($result, $this->_options['casts'][$key]);
 		}
@@ -267,7 +267,12 @@ class Entity
 	 */
 	protected function mapProperty(string $key)
 	{
-		if (array_key_exists($key, $this->_options['datamap']))
+		if (empty($this->_options['datamap']))
+		{
+			return $key;
+		}
+
+		if (isset($this->_options['datamap'][$key]) && ! empty($this->_options['datamap'][$key]))
 		{
 			return $this->_options['datamap'][$key];
 		}
@@ -347,10 +352,8 @@ class Entity
 				{
 					$value = unserialize($value);
 				}
-				else
-				{
-					$value = (object)$value;
-				}
+
+				$value = (array)$value;
 				break;
 			case 'datetime':
 				return new \DateTime($value);
